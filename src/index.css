@@ -1,3 +1,7 @@
+@import "./styles/var.css";
+@import "./styles/reset.css";
+@import "./styles/common.css";
+
 /* 레이아웃 가이드: 모든 화면은 1440 × 900 데스크톱 프레임 기준 */
 :root {
   --layout-width: 1440px;
