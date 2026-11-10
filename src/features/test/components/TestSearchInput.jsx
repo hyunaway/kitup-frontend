@@ -1,13 +1,10 @@
 import styled from "styled-components";
-import { Search } from "lucide-react";
+import search_icon from "@/images/CommonComponents/search_icon.svg"
 
-export default function TestSearchInput({
-  value = "",
-  onChange,
-}) {
+export default function TestSearchInput({ value = "", onChange }) {
   return (
     <SearchContainer>
-      <SearchIcon size={20} strokeWidth={2} />
+      <SearchIcon src={search_icon} alt="" aria-hidden="true"/>
 
       <SearchField
         type="search"
@@ -20,6 +17,13 @@ export default function TestSearchInput({
   );
 }
 
+const SearchIcon = styled.img`
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  aspect-ratio: 1/1;
+`
+
 const SearchContainer = styled.div`
   display: flex;
   align-items: center;
@@ -31,18 +35,8 @@ const SearchContainer = styled.div`
   min-height: 44px;
   padding: 10px;
 
-  background-color: #fcfeff;
   border: 1px solid #64748b;
   border-radius: 8px;
-
-  &:focus-within {
-    border-color: #0f172a;
-  }
-`;
-
-const SearchIcon = styled(Search)`
-  flex-shrink: 0;
-  color: #64748b;
 `;
 
 const SearchField = styled.input`

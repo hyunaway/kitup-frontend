@@ -1,8 +1,10 @@
 import styled from "styled-components";
 import PageHeading from "../shared/ui/PageHeading";
 import { useState } from "react";
-import TestFilterTabs from "../features/test/components/TestFilterTabs";
 import TestToolbar from "../features/test/components/TestToolbar";
+import Header from "@/app/layouts/HeaderLayout.jsx";
+import Empty from "../features/test/components/EmptyTestList"
+import UsageGuide from "../features/test/components/UsageGuide";
 
 export default function TestListPage() {
   const [activeTab, setActiveTab] = useState("ALL");
@@ -18,35 +20,45 @@ export default function TestListPage() {
 
   return (
     <PageContainer>
-      <PageHeading
-        title="내 테스트"
-        description="판매해 본 결과로, 다음 선택을 준비하세요."
-      />
+      <Header />
+      <MainContent>
+        <PageHeading
+          title="내 테스트"
+          description="판매해 본 결과로, 다음 선택을 준비하세요."
+        />
 
-      <TestToolbar
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        counts={counts}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+        <TestToolbar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          counts={counts}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
 
-      {/* TestList / TestEmptyState */}
+        <Empty/>
+
+        <UsageGuide />
+      </MainContent>
     </PageContainer>
   );
 }
 
 const PageContainer = styled.main`
+`
+
+const MainContent = styled.div`
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+
   display: flex;
   flex-direction: column;
   gap: 24px;
 
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 64px 0;
+  padding-top: 64px;
+  box-sizing: border-box;
 
   @media (max-width: 1248px) {
     padding: 40px 24px;
   }
-`;
+`

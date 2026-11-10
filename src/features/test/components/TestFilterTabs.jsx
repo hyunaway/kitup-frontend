@@ -32,9 +32,9 @@ export default function TestFilterTabs({
 
 const TabsContainer = styled.div`
   display: flex;
-  align-items: center;
-  gap: 4px;
   padding: 4px;
+  align-items: center;
+  gap: 6px;
   overflow-x: auto;
 `;
 
@@ -63,6 +63,9 @@ const TabButton = styled.button`
   white-space: nowrap;
   cursor: pointer;
 
+  filter: ${({ $active }) =>
+    $active ? "drop-shadow(0 1px 1px rgba(0, 0, 0, 0.05))" : "none"};
+
   transition: background-color 0.2s ease, color 0.2s ease;
 
   &:hover {
@@ -85,4 +88,6 @@ const TabCount = styled.span`
   align-items: center;
   justify-content: center;
   min-width: 12px;
+  padding: 2px 6px;
+  border-radius: 9999px;
 `;
