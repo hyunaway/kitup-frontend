@@ -12,7 +12,7 @@
 
 .recipeinputpage_main {
   width: 960px;
-  min-height: 610px;
+  height: auto;
   border: 1px solid var(--unselected);
   border-radius: 8px;
   background-color: #fcfeff;
@@ -22,6 +22,7 @@
   flex-direction: column;
   align-items: center;
   margin-top: 24px;
+  padding-bottom: 24px;
 }
 
 /* ======================================================= */
@@ -85,6 +86,10 @@
   line-height: 140%;
   letter-spacing: -2.4%;
   color: #64748b;
+}
+
+.r_m_m_top span {
+  color: #f43f5e;
 }
 
 .r_m_m_top p:last-child {

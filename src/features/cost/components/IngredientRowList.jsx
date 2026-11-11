@@ -2,7 +2,7 @@ import "./IngredientRowList.css";
 import del_icon from "@/images/Onboarding/del_icon.svg";
 import drop_icon from "@/images/Onboarding/drop_icon.svg";
 
-const IngredientRowList = () => {
+const IngredientRowList = ({ onDelete }) => {
   return (
     <div className="IngredientRowList_wrap">
       <input type="text" className="ingredientrowlist_1" />
@@ -26,7 +26,7 @@ const IngredientRowList = () => {
         <p>원</p>
       </div>
       <div className="ingredientrowlist_5">
-        <img src={del_icon} alt="" />
+        <img src={del_icon} alt="" onClick={onDelete} />
       </div>
     </div>
   );

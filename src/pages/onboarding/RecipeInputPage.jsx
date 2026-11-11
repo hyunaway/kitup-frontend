@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import OnboardingHeader from "@/features/cost/components/OnboardingHeader";
 import IngredientRowList from "@/features/cost/components/IngredientRowList";
+import DeleteModal from "@/features/cost/components/DeleteModal";
 import "./RecipeInputPage.css";
 import next_btn from "@/images/Onboarding/next_btn.svg";
 import prev_btn from "@/images/Onboarding/prev_btn.svg";
@@ -8,6 +10,8 @@ import plus_icon from "@/images/Onboarding/plus_icon.svg";
 
 function RecipeInputPage() {
   const navigate = useNavigate();
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [ingredients, setIngredients] = useState([]);
 
   return (
     <div className="RecipeInputPage_wrap">
@@ -37,13 +41,20 @@ function RecipeInputPage() {
             <p>삭제</p>
           </div>
           <div className="r_m_m_mid">
-            <IngredientRowList />
-            <IngredientRowList />
-            <IngredientRowList />
-            <IngredientRowList />
+            {ingredients.map((id) => (
+              <IngredientRowList
+                key={id}
+                onDelete={() => setDeleteTarget(id)}
+              />
+            ))}
           </div>
 
-          <div className="r_m_m_bot">
+          <div
+            className="r_m_m_bot"
+            onClick={() =>
+              setIngredients((prev) => [...prev, Math.max(0, ...prev) + 1])
+            }
+          >
             <img src={plus_icon} alt="" />
             <p>재료 추가</p>
           </div>
@@ -76,6 +87,16 @@ function RecipeInputPage() {
           <img src={next_btn} alt="" />
         </button>
       </div>
+
+      {deleteTarget !== null && (
+        <DeleteModal
+          onClose={() => setDeleteTarget(null)}
+          onDelete={() => {
+            setIngredients((prev) => prev.filter((id) => id !== deleteTarget));
+            setDeleteTarget(null);
+          }}
+        />
+      )}
     </div>
   );
 }

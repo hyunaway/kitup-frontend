@@ -1,0 +1,58 @@
+.DeleteModal_wrap {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(15, 23, 42, 0.86);
+
+  z-index: 1000;
+}
+
+.deletemodal_box {
+  width: 420px;
+  height: 150px;
+  background: #fcfeff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.15);
+  padding: 20px 24px;
+
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 140%;
+  letter-spacing: -2.4%;
+  color: #0f172a;
+}
+
+.deletemodal_box span {
+  font-weight: 400;
+  font-size: 12px;
+  display: block;
+  margin-top: 16px;
+}
+
+.deletemodal_btn {
+  justify-content: flex-end;
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.deletemodal_prev {
+  width: 60px;
+  height: 36px;
+  border-radius: 6px;
+  border: solid 1px #0f172a;
+}
+
+.deletemodal_next {
+  width: 60px;
+  height: 36px;
+  border-radius: 6px;
+  background-color: #ffe4e6;
+  color: #e11d48;
+}
