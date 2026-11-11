@@ -156,6 +156,7 @@
 .m_m_b_2_box select {
   background: none;
   width: 384px;
+  cursor: pointer;
 }
 
 /* ================================================ */

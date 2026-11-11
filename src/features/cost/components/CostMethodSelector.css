@@ -100,3 +100,27 @@
   color: #64748b;
   margin-top: 16px;
 }
+
+/* ================================================ */
+
+.c_m_left.selected,
+.c_m_right.selected {
+  border: 2px solid var(--text);
+  background-color: var(--selected);
+}
+
+.selected .c_m_circle {
+  background-color: var(--text);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.c_m_circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selected .c_m_l_t_img,
+.selected .c_m_r_t_img {
+  background-color: var(--text);
+}
