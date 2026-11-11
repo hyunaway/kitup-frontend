@@ -1,21 +1,63 @@
+// 내 테스트 화면
+import { useMemo } from "react";
+import { useNavigate } from "react-router";
 import styled from "styled-components";
 import PageHeading from "../shared/ui/PageHeading";
-import { useState } from "react";
+import EmptyState from "../shared/ui/EmptyState";
 import TestToolbar from "../features/test/components/TestToolbar";
 import Header from "@/app/layouts/HeaderLayout.jsx";
-import Empty from "../features/test/components/EmptyTestList"
+import Empty from "../features/test/components/EmptyTestList";
+import NoSearchResult from "../features/test/components/NoSearchResult";
+import TestTable from "../features/test/components/TestTable";
 import UsageGuide from "../features/test/components/UsageGuide";
+import useTests from "../features/test/api/useTests";
+import useTestListParams from "../features/test/hooks/useTestListParams";
+import { getTestListView } from "../features/test/utils/testListView";
 
 export default function TestListPage() {
-  const [activeTab, setActiveTab] = useState("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  const { status, page, query, setStatus, setPage, setQuery } =
+    useTestListParams();
+  const { data: tests = [], isPending, isError, refetch } = useTests();
 
-  // 추후 실제 API 데이터로 교체
-  const counts = {
-    ALL: 0,
-    RUNNING: 0,
-    DRAFT: 0,
-    COMPLETED: 0,
+  const view = useMemo(
+    () => getTestListView({ tests, status, query, page }),
+    [tests, status, query, page],
+  );
+
+  const renderList = () => {
+    if (isPending) {
+      return <EmptyState title="테스트 목록을 불러오는 중입니다." />;
+    }
+    if (isError) {
+      return (
+        <EmptyState
+          title="테스트 목록을 불러오지 못했습니다."
+          description="잠시 후 다시 시도해 주세요."
+          action={
+            <RetryButton type="button" onClick={() => refetch()}>
+              다시 시도
+            </RetryButton>
+          }
+        />
+      );
+    }
+    if (tests.length === 0) {
+      return <Empty onStartTest={() => navigate("/tests/new")} />;
+    }
+    if (view.isSearching && view.searchedTotal === 0) {
+      return <NoSearchResult query={view.query} />;
+    }
+    return (
+      <TestTable
+        rows={view.rows}
+        total={view.total}
+        isSearching={view.isSearching}
+        page={view.page}
+        totalPages={view.totalPages}
+        onPageChange={setPage}
+      />
+    );
   };
 
   return (
@@ -28,14 +70,14 @@ export default function TestListPage() {
         />
 
         <TestToolbar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          counts={counts}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          activeTab={status}
+          onTabChange={setStatus}
+          counts={view.counts}
+          searchQuery={query}
+          onSearchChange={setQuery}
         />
 
-        <Empty/>
+        {renderList()}
 
         <UsageGuide />
       </MainContent>
@@ -44,7 +86,8 @@ export default function TestListPage() {
 }
 
 const PageContainer = styled.main`
-`
+  padding-bottom: 60px;
+`;
 
 const MainContent = styled.div`
   width: 100%;
@@ -61,4 +104,20 @@ const MainContent = styled.div`
   @media (max-width: 1248px) {
     padding: 40px 24px;
   }
-`
+`;
+
+const RetryButton = styled.button`
+  padding: 10px 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #fcfeff;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f1f5f9;
+  }
+`;
