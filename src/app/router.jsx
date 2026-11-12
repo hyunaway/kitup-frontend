@@ -10,7 +10,7 @@ import CostResultPage from '@/pages/onboarding/CostResultPage.jsx'
 import DashboardLayout from '@/pages/dashboard/DashboardLayout.jsx'
 import OperationTabPage from '@/pages/dashboard/OperationTabPage.jsx'
 import OrdersTabPage from '@/pages/dashboard/OrdersTabPage.jsx'
-import CostEditPage from '@/pages/dashboard/CostEditPage.jsx'
+import CostEditPage from '@/pages/onboarding/CostEditPage.jsx'
 import IngredientEditPage from '@/pages/dashboard/IngredientEditPage.jsx'
 import ReportPrecheckPage from '@/pages/ReportPrecheckPage.jsx'
 import ReportPage from '@/pages/ReportPage.jsx'
@@ -41,6 +41,7 @@ export const router = createBrowserRouter([
           { path: 'onboarding/recipe', element: <RecipeInputPage /> },
           { path: 'onboarding/ai', element: <AiIngredientPage /> },
           { path: 'onboarding/result', element: <CostResultPage /> },
+          { path: 'onboarding/cost', element: <CostEditPage /> },
           {
             path: 'dashboard',
             element: <DashboardLayout />,
@@ -50,7 +51,6 @@ export const router = createBrowserRouter([
               { path: 'orders', element: <OrdersTabPage /> },
             ],
           },
-          { path: 'dashboard/cost', element: <CostEditPage /> },
           { path: 'dashboard/cost/ingredients', element: <IngredientEditPage /> },
           { path: 'precheck', element: <ReportPrecheckPage /> },
           { path: 'report', element: <ReportPage /> },
