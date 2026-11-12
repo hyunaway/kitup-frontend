@@ -1,4 +1,3 @@
-import { useState } from "react";
 import "./CostMethodSelector.css";
 import recipeinput01_icon from "@/images/Onboarding/recipeinput01_icon.svg";
 import recipeinput02_icon from "@/images/Onboarding/recipeinput02_icon.svg";
@@ -6,9 +5,7 @@ import ai01_icon from "@/images/Onboarding/ai01_icon.svg";
 import ai02_icon from "@/images/Onboarding/ai02_icon.svg";
 import check_icon from "@/images/Onboarding/check_icon.svg";
 
-const CostMethodSelector = () => {
-  const [selectedMethod, setSelectedMethod] = useState("recipe");
-
+const CostMethodSelector = ({ selectedMethod, setSelectedMethod }) => {
   return (
     <div className="CostMethodSelector_wrap">
       <div className="costmethodselector_top">

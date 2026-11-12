@@ -81,7 +81,7 @@ function RecipeInputPage() {
         </button>
         <button
           className="recipeinputpage_bot_next"
-          onClick={() => navigate("/tests/1/onboarding/result")}
+          onClick={() => navigate("/tests/1/onboarding/cost")}
         >
           원가 확인하러 가기
           <img src={next_btn} alt="" />

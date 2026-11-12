@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import OnboardingHeader from "@/features/cost/components/OnboardingHeader";
 import MenuBasicForm from "@/features/cost/components/MenuBasicForm";
@@ -8,6 +9,7 @@ import "@/features/cost/components/IngredientRowList";
 
 function MenuRegisterPage() {
   const navigate = useNavigate();
+  const [selectedMethod, setSelectedMethod] = useState("recipe");
 
   return (
     <div className="MenuRegister_wrap">
@@ -20,14 +22,25 @@ function MenuRegisterPage() {
       <div className="menuregister_main">
         <MenuBasicForm />
         <div className="menuregister_main_02">
-          <CostMethodSelector />
+          <CostMethodSelector
+            selectedMethod={selectedMethod}
+            setSelectedMethod={setSelectedMethod}
+          />
         </div>
       </div>
       <button
         className="menuregister_bot"
-        onClick={() => navigate("/tests/1/onboarding/recipe")}
+        onClick={() =>
+          navigate(
+            selectedMethod === "recipe"
+              ? "/tests/1/onboarding/recipe"
+              : "/tests/1/onboarding/ai",
+          )
+        }
       >
-        계속 (레시피 입력)
+        {selectedMethod === "recipe"
+          ? "계속 (레시피 입력)"
+          : "계속 (AI 원가 추정)"}
         <img src={next_btn} alt="" />
       </button>
     </div>
