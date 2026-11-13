@@ -6,7 +6,6 @@ import sidebar_icon02 from "@/images/CommonComponents/sidebar_icon02.svg";
 import sidebar_icon02_active from "@/images/CommonComponents/sidebar_icon02_active.svg";
 import sidebar_icon03 from "@/images/CommonComponents/sidebar_icon03.svg";
 import sidebar_icon03_active from "@/images/CommonComponents/sidebar_icon03_active.svg";
-import sidebar_icon04 from "@/images/CommonComponents/sidebar_icon04.svg";
 
 const StepSidebar = () => {
   const navigate = useNavigate();
@@ -16,7 +15,6 @@ const StepSidebar = () => {
   const isActive01 = location.pathname.includes("/onboarding/");
   const isActive02 = location.pathname.includes("/dashboard");
   const isActive03 = location.pathname.endsWith("/report");
-  const isActive04 = location.pathname.endsWith("/simulator");
 
   return (
     <div className="StepSidebar_wrap">
@@ -55,14 +53,14 @@ const StepSidebar = () => {
         />
         <p>분석 리포트</p>
       </button>
-      <button
+      {/* <button
         type="button"
         className={`stepsidebar_4 ${isActive04 ? "active" : ""}`}
         onClick={() => navigate(`/tests/${testId}/simulator`)}
       >
         <img src={sidebar_icon04} alt="사이드바04 아이콘" />
         <p>개선 시뮬레이터</p>
-      </button>
+      </button> */}
     </div>
   );
 };

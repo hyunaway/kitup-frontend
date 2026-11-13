@@ -7,8 +7,7 @@
 
 .stepsidebar_1,
 .stepsidebar_2,
-.stepsidebar_3,
-.stepsidebar_4 {
+.stepsidebar_3 {
   width: 230px;
   height: 40px;
   display: flex;
@@ -23,8 +22,7 @@
 
 .stepsidebar_1.active,
 .stepsidebar_2.active,
-.stepsidebar_3.active,
-.stepsidebar_4.active {
+.stepsidebar_3.active {
   background-color: var(--selected);
   border-left: 2px solid var(--text);
   font-weight: 600;
