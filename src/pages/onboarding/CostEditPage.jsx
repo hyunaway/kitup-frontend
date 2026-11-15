@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { getTestDetail, updateTest } from "@/features/cost/api/menuTests";
+import {
+  getTestDetail,
+  getTestDefaults,
+  updateTest,
+} from "@/features/cost/api/menuTests";
 import "./CostEditPage.css";
 import OnboardingHeader from "@/features/cost/components/OnboardingHeader";
 import SalesCondition from "@/features/cost/components/SalesCondition";
@@ -16,6 +20,10 @@ const CostEditPage = () => {
     ingredientCost: "",
     packagingCost: "",
   });
+  const [deliveryInfo, setDeliveryInfo] = useState({
+    fee: 0,
+    rate: 0,
+  });
   const [isLoading, setIsLoading] = useState(Boolean(testId));
   const [isSaving, setIsSaving] = useState(false);
   const [isEditable, setIsEditable] = useState(true);
@@ -26,8 +34,15 @@ const CostEditPage = () => {
 
     const fetchCostInfo = async () => {
       try {
-        const result = await getTestDetail(testId);
+        const [result, defaults] = await Promise.all([
+          getTestDetail(testId),
+          getTestDefaults(),
+        ]);
         if (!active) return;
+        setDeliveryInfo({
+          fee: defaults.data.delivery_fee,
+          rate: defaults.data.delivery_commission_rate,
+        });
         setError("");
 
         const data = result.data;
@@ -146,7 +161,13 @@ const CostEditPage = () => {
           }
           disabled={isLoading || isSaving || !isEditable}
         />
-        <ContributionMargin />
+        <ContributionMargin
+          sellingPrice={costInfo.sellingPrice}
+          ingredientCost={costInfo.ingredientCost}
+          packagingCost={costInfo.packagingCost}
+          deliveryFee={deliveryInfo.fee}
+          commissionRate={deliveryInfo.rate}
+        />
       </div>
       {!testId && <p role="alert">테스트 ID를 확인할 수 없습니다.</p>}
       {error && <p role="alert">{error}</p>}
