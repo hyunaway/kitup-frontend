@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
+import { getTestDetail, updateTest } from "@/features/cost/api/menuTests";
 import "./FixedCostInputPage.css";
 import info_icon03 from "@/images/Dashboard/info_icon03.svg";
 import notice_icon from "@/images/Dashboard/notice_icon.svg";
@@ -14,7 +15,49 @@ const FixedCostInputPage = () => {
   const navigate = useNavigate();
   const { testId } = useParams();
 
-  const [fixedCost, setFixedCost] = useState("3500000");
+  const [fixedCost, setFixedCost] = useState("");
+  const [isLoading, setIsLoading] = useState(Boolean(testId));
+  const [isSaving, setIsSaving] = useState(false);
+  const [isEditable, setIsEditable] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!testId) return;
+
+    let active = true;
+
+    const fetchFixedCost = async () => {
+      try {
+        const result = await getTestDetail(testId);
+        if (!active) return;
+
+        const data = result.data;
+
+        setFixedCost(
+          data.monthly_fixed_cost == null
+            ? ""
+            : String(data.monthly_fixed_cost),
+        );
+
+        setIsEditable(data.is_editable);
+      } catch (err) {
+        if (active) {
+          setLoadError(err.message || "고정비 정보를 불러오지 못했습니다.");
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchFixedCost();
+
+    return () => {
+      active = false;
+    };
+  }, [testId]);
 
   const handleChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
@@ -29,10 +72,35 @@ const FixedCostInputPage = () => {
     setFixedCost("0");
   };
 
-  const handleSave = () => {
-    navigate(`/tests/${testId}/precheck`, {
-      state: { fixedCost: Number(fixedCost || 0) },
-    });
+  const handleSave = async () => {
+    if (isLoading || isSaving || !isEditable || !testId || loadError) return;
+
+    const amount = Number(fixedCost || 0);
+
+    // 1. 입력값 검증
+    if (!Number.isSafeInteger(amount) || amount < 0) {
+      setError("고정비는 0 이상의 정수로 입력해 주세요.");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setError("");
+
+      // 2. 추가 고정비 저장
+      await updateTest(testId, {
+        monthly_fixed_cost: amount,
+      });
+
+      // 3. 저장 성공 후 이동
+      navigate(`/tests/${testId}/report`, {
+        state: { fixedCost: amount },
+      });
+    } catch (err) {
+      setError(err.message || "고정비 저장에 실패했습니다.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -74,6 +142,9 @@ const FixedCostInputPage = () => {
             value={
               fixedCost === "" ? "" : Number(fixedCost).toLocaleString("ko-KR")
             }
+            disabled={
+              isLoading || isSaving || !isEditable || Boolean(loadError)
+            }
             onChange={handleChange}
             placeholder="0"
             aria-label="월 고정비 지출액"
@@ -92,6 +163,9 @@ const FixedCostInputPage = () => {
               <button
                 type="button"
                 key={item.amount}
+                disabled={
+                  isLoading || isSaving || !isEditable || Boolean(loadError)
+                }
                 onClick={() => handleAdd(item.amount)}
               >
                 {item.label}
@@ -117,6 +191,13 @@ const FixedCostInputPage = () => {
         </div>
       </div>
 
+      {!testId && <p role="alert">테스트 ID를 확인할 수 없습니다.</p>}
+      {isLoading && <p>고정비 정보를 불러오는 중입니다.</p>}
+      {loadError && <p role="alert">{loadError}</p>}
+      {!isEditable && (
+        <p role="alert">리포트가 생성된 테스트는 수정할 수 없습니다.</p>
+      )}
+      {error && <p role="alert">{error}</p>}
       <div className="fixedcostinputpage_bot">
         <button
           className="fixedcostinputpage_cancel"
@@ -129,6 +210,13 @@ const FixedCostInputPage = () => {
           className="fixedcostinputpage_save"
           type="button"
           onClick={handleSave}
+          disabled={
+            isLoading ||
+            isSaving ||
+            !isEditable ||
+            !testId ||
+            Boolean(loadError)
+          }
         >
           저장 및 리포트 생성 →
         </button>

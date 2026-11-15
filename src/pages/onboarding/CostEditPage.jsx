@@ -1,4 +1,6 @@
-import { useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router";
+import { getTestDetail, updateTest } from "@/features/cost/api/menuTests";
 import "./CostEditPage.css";
 import OnboardingHeader from "@/features/cost/components/OnboardingHeader";
 import SalesCondition from "@/features/cost/components/SalesCondition";
@@ -7,6 +9,106 @@ import ContributionMargin from "@/features/cost/components/ContributionMargin";
 
 const CostEditPage = () => {
   const navigate = useNavigate();
+  const { testId } = useParams();
+
+  const [costInfo, setCostInfo] = useState({
+    sellingPrice: "",
+    ingredientCost: "",
+    packagingCost: "",
+  });
+  const [isLoading, setIsLoading] = useState(Boolean(testId));
+  const [isSaving, setIsSaving] = useState(false);
+  const [isEditable, setIsEditable] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    const fetchCostInfo = async () => {
+      try {
+        const result = await getTestDetail(testId);
+        if (!active) return;
+        setError("");
+
+        const data = result.data;
+
+        setCostInfo({
+          sellingPrice:
+            data.selling_price == null ? "" : String(data.selling_price),
+          ingredientCost:
+            data.total_ingredient_cost == null
+              ? ""
+              : String(data.total_ingredient_cost),
+          packagingCost:
+            data.packaging_cost == null ? "" : String(data.packaging_cost),
+        });
+
+        setIsEditable(data.is_editable);
+      } catch (err) {
+        if (active) {
+          setError(err.message || "원가 정보를 불러오지 못했습니다.");
+        }
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+
+    if (testId) {
+      fetchCostInfo();
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [testId]);
+
+  const handleSave = async () => {
+    if (isSaving || isLoading || !isEditable || !testId) return;
+
+    const sellingPrice = Number(costInfo.sellingPrice);
+    const ingredientCost = Number(costInfo.ingredientCost);
+    const packagingCost = Number(costInfo.packagingCost);
+
+    if (
+      costInfo.sellingPrice.trim() === "" ||
+      !Number.isInteger(sellingPrice) ||
+      sellingPrice < 1
+    ) {
+      setError("판매가는 1 이상의 정수로 입력해 주세요.");
+      return;
+    }
+
+    if (
+      costInfo.ingredientCost.trim() === "" ||
+      !Number.isFinite(ingredientCost) ||
+      ingredientCost < 1
+    ) {
+      setError("식재료비는 1원 이상 입력해 주세요.");
+      return;
+    }
+
+    if (!Number.isFinite(packagingCost) || packagingCost < 0) {
+      setError("포장비는 0 이상으로 입력해 주세요.");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setError("");
+
+      await updateTest(testId, {
+        selling_price: sellingPrice,
+        total_ingredient_cost: ingredientCost,
+        packaging_cost: packagingCost,
+      });
+
+      navigate(`/tests/${testId}/onboarding/result`);
+    } catch (err) {
+      setError(err.message || "원가 저장에 실패했습니다.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="CostEditPage_wrap">
@@ -17,14 +119,42 @@ const CostEditPage = () => {
         />
       </div>
       <div className="costeditpage_main">
-        <SalesCondition />
-        <VariableCost />
+        <SalesCondition
+          sellingPrice={costInfo.sellingPrice}
+          onChange={(value) =>
+            setCostInfo((prev) => ({
+              ...prev,
+              sellingPrice: value,
+            }))
+          }
+          disabled={isLoading || isSaving || !isEditable}
+        />
+        <VariableCost
+          ingredientCost={costInfo.ingredientCost}
+          packagingCost={costInfo.packagingCost}
+          onIngredientChange={(value) =>
+            setCostInfo((prev) => ({
+              ...prev,
+              ingredientCost: value,
+            }))
+          }
+          onPackagingChange={(value) =>
+            setCostInfo((prev) => ({
+              ...prev,
+              packagingCost: value,
+            }))
+          }
+          disabled={isLoading || isSaving || !isEditable}
+        />
         <ContributionMargin />
       </div>
+      {!testId && <p role="alert">테스트 ID를 확인할 수 없습니다.</p>}
+      {error && <p role="alert">{error}</p>}
       <div className="costeditpage_bot">
         <button
           className="costeditpage_bot_next"
-          onClick={() => navigate("/tests/1/onboarding/result")}
+          onClick={handleSave}
+          disabled={isLoading || isSaving || !isEditable}
         >
           원가 설정 완료
         </button>

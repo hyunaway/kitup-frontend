@@ -2,7 +2,13 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
 
 const request = async (endpoint, method = "GET", body = undefined) => {
   if (!BASE_URL) {
-    throw new Error("백엔드 Base URL이 설정되지 않았습니다.");
+    if (!response.ok || result?.success === false) {
+      const error = new Error(
+        result?.error?.message || result?.message || "API 요청에 실패했습니다.",
+      );
+      error.code = result?.error?.code;
+      throw error;
+    }
   }
 
   const isFormData = body instanceof FormData;

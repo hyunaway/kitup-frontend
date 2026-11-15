@@ -50,6 +50,7 @@ function MenuRegisterPage() {
         // 2. 기존 테스트라면 저장된 정보 조회
         if (routeTestId) {
           const detailResult = await getTestDetail(routeTestId);
+
           if (!active) return;
 
           const data = detailResult.data;
