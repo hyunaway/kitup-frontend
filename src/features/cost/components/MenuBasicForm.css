@@ -170,3 +170,78 @@
 .MenuBasicForm_wrap input[type="number"] {
   appearance: textfield;
 }
+
+/* ================================================ */
+
+.m_m_b_2 {
+  position: relative;
+}
+
+.m_m_b_2_box .business-hours-trigger {
+  width: 100%;
+  height: 100%;
+  outline: none;
+  background: none;
+  text-align: left;
+}
+
+.business-hours-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background-color: #fcfeff;
+}
+
+.business-hours-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.business-hours-column {
+  min-width: 0;
+}
+
+.business-hours-column > p {
+  margin-bottom: 11px;
+  color: #64748b;
+}
+
+.business-hours-options {
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.hours-option {
+  font-size: 14px;
+  color: #334155;
+
+  display: block;
+  width: 100%;
+  padding: 6.7px 12px;
+  border-radius: 6px;
+  text-align: left;
+}
+
+.hours-option.selected {
+  background-color: #f1f5f9;
+  font-weight: 700;
+}
+
+.business-hours-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.business-hours-actions button {
+  padding: 7px 15px;
+  border-radius: 6px;
+  background-color: #0f172a;
+  color: #ffffff;
+}

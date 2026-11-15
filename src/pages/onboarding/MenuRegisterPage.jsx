@@ -142,6 +142,11 @@ function MenuRegisterPage() {
         menu_name: menuName,
         selling_price: sellingPrice,
         packaging_cost: packagingCost,
+        ...(menuInfo.businessStartTime &&
+          menuInfo.businessEndTime && {
+            business_start_time: menuInfo.businessStartTime,
+            business_end_time: menuInfo.businessEndTime,
+          }),
       });
 
       navigate(
