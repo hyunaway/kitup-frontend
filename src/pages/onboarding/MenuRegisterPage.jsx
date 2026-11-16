@@ -190,6 +190,7 @@ function MenuRegisterPage() {
         <p role="alert">리포트가 생성된 테스트는 수정할 수 없습니다.</p>
       )}
       <button
+        type="button"
         className="menuregister_bot"
         onClick={handleNext}
         disabled={
