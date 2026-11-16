@@ -1,29 +1,74 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams, useOutletContext } from "react-router";
+import { getOrders } from "@/features/dashboard/api/dashboard";
 import "./OrdersTabPage.css";
 import info_icon from "@/images/Dashboard/info_icon.svg";
 
-const orders = [
-  { id: 1, time: "11/15 17:23", type: "배달", price: 12000 },
-  { id: 2, time: "11/15 17:47", type: "배달", price: 12000 },
-  { id: 3, time: "11/15 17:50", type: "픽업", price: 12000 },
-  { id: 4, time: "11/15 18:10", type: "배달", price: 12000 },
-  { id: 5, time: "11/15 18:15", type: "픽업", price: 12000 },
-  { id: 6, time: "11/15 18:20", type: "배달", price: 12000 },
-  { id: 7, time: "11/15 18:25", type: "픽업", price: 12000 },
-  { id: 8, time: "11/15 18:30", type: "배달", price: 12000 },
-  { id: 9, time: "11/15 18:35", type: "픽업", price: 12000 },
-  { id: 10, time: "11/15 18:40", type: "배달", price: 12000 },
-];
+const formatOrderTime = (value) =>
+  new Date(value)
+    .toLocaleString("en-US", {
+      timeZone: "Asia/Seoul",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    })
+    .replace(",", "");
 
 const OrdersTabPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedReview, setSelectedReview] = useState(null);
+  const { testId } = useParams();
+  const { refreshKey } = useOutletContext();
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
   const itemsPerPage = 5;
-
   const totalPages = Math.ceil(orders.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentOrders = orders.slice(startIndex, startIndex + itemsPerPage);
+  const pageStart = Math.max(1, Math.min(currentPage - 1, totalPages - 1));
 
-  const visiblePages = [1, 2];
+  const visiblePages = Array.from(
+    { length: Math.min(2, totalPages) },
+    (_, index) => pageStart + index,
+  );
+
+  useEffect(() => {
+    if (!testId) return;
+
+    let active = true;
+
+    const fetchOrders = async () => {
+      setIsLoading(true);
+      setError("");
+      setOrders([]);
+      setCurrentPage(1);
+
+      try {
+        const result = await getOrders(testId);
+
+        if (!active) return;
+
+        setOrders(result.data ?? []);
+      } catch (err) {
+        if (active) {
+          setError(err.message || "주문 목록을 불러오지 못했습니다.");
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchOrders();
+
+    return () => {
+      active = false;
+    };
+  }, [testId, refreshKey]);
 
   return (
     <div className="OrdersTabPage_wrap">
@@ -34,6 +79,9 @@ const OrdersTabPage = () => {
           완료 전 주문은 위 매출에서 제외
         </span>
       </div>
+
+      {isLoading && <p>주문 목록을 불러오는 중입니다.</p>}
+      {error && <p role="alert">{error}</p>}
 
       <div className="orderstabpage_table_wrap">
         <table className="orderstabpage_table">
@@ -48,22 +96,32 @@ const OrdersTabPage = () => {
           </thead>
 
           <tbody>
+            {!isLoading && !error && orders.length === 0 && (
+              <tr>
+                <td colSpan={5}>아직 주문 내역이 없습니다.</td>
+              </tr>
+            )}
             {currentOrders.map((order) => (
-              <tr key={order.id}>
-                <td>{order.id}</td>
-                <td>{order.time}</td>
+              <tr key={order.order_id}>
+                <td>{order.order_id}</td>
+                <td>{formatOrderTime(order.created_at)}</td>
                 <td>
                   <span
                     className={`orders_type ${
-                      order.type === "배달" ? "delivery" : "pickup"
+                      order.order_type === "DELIVERY" ? "delivery" : "pickup"
                     }`}
                   >
-                    {order.type}
+                    {order.order_type === "DELIVERY" ? "배달" : "픽업"}
                   </span>
                 </td>
-                <td>{order.price.toLocaleString()}원</td>
+                <td>{order.sales_amount.toLocaleString("ko-KR")}원</td>
                 <td>
-                  <button className="orders_review" type="button">
+                  <button
+                    className="orders_review"
+                    type="button"
+                    onClick={() => setSelectedReview(order)}
+                    disabled={!order.review?.content}
+                  >
                     리뷰 확인하기
                   </button>
                 </td>
@@ -75,8 +133,8 @@ const OrdersTabPage = () => {
 
       <div className="orderstabpage_bot">
         <p>
-          {startIndex + 1} - {startIndex + currentOrders.length} / 전체{" "}
-          {orders.length}개 주문 표시
+          {orders.length === 0 ? 0 : startIndex + 1} -{" "}
+          {startIndex + currentOrders.length} / 전체 {orders.length}개 주문 표시
         </p>
 
         <div className="orders_pagination">
@@ -101,13 +159,40 @@ const OrdersTabPage = () => {
 
           <button
             type="button"
-            disabled={currentPage === totalPages}
+            disabled={currentPage >= totalPages}
             onClick={() => setCurrentPage(currentPage + 1)}
           >
             다음
           </button>
         </div>
       </div>
+
+      {selectedReview && (
+        <div className="reviewmodal_overlay">
+          <div
+            className="reviewmodal_box"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reviewmodal_title"
+          >
+            <h2 id="reviewmodal_title" className="reviewmodal_title">
+              #{String(selectedReview.order_id).padStart(3, "0")} 리뷰
+            </h2>
+
+            <div className="reviewmodal_content">
+              {selectedReview.review.content}
+            </div>
+
+            <button
+              className="reviewmodal_close"
+              type="button"
+              onClick={() => setSelectedReview(null)}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

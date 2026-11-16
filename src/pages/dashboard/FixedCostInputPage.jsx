@@ -35,9 +35,9 @@ const FixedCostInputPage = () => {
         const data = result.data;
 
         setFixedCost(
-          data.monthly_fixed_cost == null
+          data.additional_fixed_cost == null
             ? ""
-            : String(data.monthly_fixed_cost),
+            : String(data.additional_fixed_cost),
         );
 
         setIsEditable(data.is_editable);
@@ -89,7 +89,7 @@ const FixedCostInputPage = () => {
 
       // 2. 추가 고정비 저장
       await updateTest(testId, {
-        monthly_fixed_cost: amount,
+        additional_fixed_cost: amount,
       });
 
       // 3. 저장 성공 후 이동
@@ -173,7 +173,14 @@ const FixedCostInputPage = () => {
             ))}
           </div>
 
-          <button className="f_c_m_reset" type="button" onClick={handleReset}>
+          <button
+            className="f_c_m_reset"
+            type="button"
+            onClick={handleReset}
+            disabled={
+              isLoading || isSaving || !isEditable || Boolean(loadError)
+            }
+          >
             0원으로 초기화
           </button>
         </div>
