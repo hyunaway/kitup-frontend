@@ -90,3 +90,111 @@
   width: 100%;
   margin-top: 20px;
 }
+
+/* =========================================================== */
+
+.importmodal_overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background-color: rgba(15, 23, 42, 0.86);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.importmodal_box {
+  width: 420px;
+  padding: 20px 24px;
+  border-radius: 12px;
+  background-color: #fcfeff;
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.15);
+
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.importmodal_title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 140%;
+  letter-spacing: -2.4%;
+}
+
+.importmodal_description {
+  margin-top: 16px;
+
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 140%;
+  letter-spacing: -2.4%;
+  color: #64748b;
+}
+
+.importmodal_info {
+  width: 370px;
+  min-height: 80px;
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 6px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 140%;
+  letter-spacing: -2.4%;
+}
+
+.importmodal_info > div {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.importmodal_notice {
+  margin-top: 16px;
+
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 140%;
+  letter-spacing: -2.4%;
+  color: #64748b;
+}
+
+.importmodal_buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.importmodal_buttons button {
+  height: 36px;
+  padding: 8px 16px;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 140%;
+  letter-spacing: -2.4%;
+}
+
+.importmodal_cancel {
+  width: 60px;
+  border: 1px solid #0f172a;
+  background-color: #fcfeff;
+}
+
+.importmodal_confirm {
+  width: 80px;
+  background-color: #0f172a;
+  color: #fcfeff;
+}
