@@ -1,7 +1,7 @@
 import "./CostCondition.css";
 import info_icon from "@/images/Onboarding/info_icon.svg";
 
-const CostCondition = () => {
+const CostCondition = ({ costData }) => {
   return (
     <div className="CostCondition_wrap">
       <div className="costcondition_top">
@@ -13,7 +13,7 @@ const CostCondition = () => {
           <p>예상 판매가</p>
           <div className="c_m_t_txt">
             <p>
-              <span>15000</span>원
+              <span>{costData.selling_price.toLocaleString("ko-KR")}</span>원
             </p>
           </div>
         </div>
@@ -25,7 +25,10 @@ const CostCondition = () => {
             </div>
             <div className="c_m_b_box_bot">
               <p>
-                <span>4,500</span>원
+                <span>
+                  {costData.total_ingredient_cost.toLocaleString("ko-KR")}
+                </span>
+                원
               </p>
             </div>
           </div>
@@ -36,7 +39,7 @@ const CostCondition = () => {
             </div>
             <div className="c_m_b_box_bot">
               <p>
-                <span>800</span>원
+                <span>{costData.packaging_cost.toLocaleString("ko-KR")}</span>원
               </p>
             </div>
           </div>
@@ -47,7 +50,7 @@ const CostCondition = () => {
             </div>
             <div className="c_m_b_box_bot">
               <p>
-                <span>2,250</span>원
+                <span>{costData.delivery_fee.toLocaleString("ko-KR")}</span>원
               </p>
             </div>
           </div>
@@ -58,7 +61,12 @@ const CostCondition = () => {
             </div>
             <div className="c_m_b_box_bot">
               <p>
-                <span>15</span>%
+                <span>
+                  {(costData.delivery_commission_rate * 100).toLocaleString(
+                    "ko-KR",
+                  )}
+                </span>
+                %
               </p>
             </div>
           </div>
