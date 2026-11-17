@@ -8,10 +8,17 @@ import {
   getDaysLeft,
 } from "@/shared/utils/format";
 import StatusBadge from "./StatusBadge";
+import SelectCheckbox from "./SelectCheckbox";
+import { isDeletable } from "../utils/testListView";
 import store_icon from "@/images/TestList/store_icon.svg";
 import calendar_icon from "@/images/TestList/calendar_icon.svg";
 
-export default function TestTableRow({ test }) {
+export default function TestTableRow({
+  test,
+  isSelecting = false,
+  isSelected = false,
+  onToggle,
+}) {
   const {
     test_id,
     menu_name,
@@ -27,6 +34,21 @@ export default function TestTableRow({ test }) {
 
   return (
     <tr>
+      {isSelecting && (
+        <SelectCell>
+          <SelectCheckbox
+            checked={isSelected}
+            onChange={onToggle}
+            label={`${displayName} 선택`}
+            disabled={!isDeletable(status)}
+            title={
+              isDeletable(status)
+                ? undefined
+                : "작성 중인 테스트만 삭제할 수 있습니다."
+            }
+          />
+        </SelectCell>
+      )}
       <NameCell title={displayName}>{displayName}</NameCell>
 
       <StatusCell>
@@ -86,6 +108,11 @@ const NameCell = styled(Cell)`
   line-height: 1.4;
   letter-spacing: -0.384px;
   color: #0f172a;
+`;
+
+const SelectCell = styled(Cell)`
+  padding: 0 0 0 20px;
+  line-height: 0;
 `;
 
 const StatusCell = styled(Cell)`
@@ -150,6 +177,11 @@ const ACTION_STYLE = {
     border-color: #0f172a;
     background-color: #0f172a;
     color: #f8fafc;
+    /* reset.css의 a:hover/a:focus { color: inherit } 보다 우선하도록 글자색을 다시 지정 */
+    &:hover,
+    &:focus {
+      color: #f8fafc;
+    }
     &:hover {
       background-color: #1e293b;
     }
@@ -158,6 +190,11 @@ const ACTION_STYLE = {
     border-color: #f4faff;
     background-color: #f4faff;
     color: #0f172a;
+    /* reset.css의 a:hover/a:focus { color: inherit } 보다 우선하도록 글자색을 다시 지정 */
+    &:hover,
+    &:focus {
+      color: #0f172a;
+    }
     &:hover {
       background-color: #e8f3ff;
     }
@@ -166,6 +203,11 @@ const ACTION_STYLE = {
     border-color: #e2e8f0;
     background-color: #fcfeff;
     color: #0f172a;
+    /* reset.css의 a:hover/a:focus { color: inherit } 보다 우선하도록 글자색을 다시 지정 */
+    &:hover,
+    &:focus {
+      color: #0f172a;
+    }
     &:hover {
       background-color: #f1f5f9;
     }

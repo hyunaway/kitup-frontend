@@ -1,6 +1,10 @@
 import styled from "styled-components";
 import Pagination from "@/shared/ui/Pagination";
 import TestTableRow from "./TestTableRow";
+import SelectCheckbox from "./SelectCheckbox";
+import { isDeletable } from "../utils/testListView";
+
+const SELECT_COLUMN_WIDTH = 40;
 
 const COLUMNS = [
   { label: "테스트명", width: 420 },
@@ -17,19 +21,48 @@ export default function TestTable({
   page,
   totalPages,
   onPageChange,
+  isSelecting = false,
+  selectedIds,
+  onToggleRow,
+  onToggleAll,
 }) {
+  // 삭제 모드에서는 체크박스 열(40px)만큼 '테스트 기간 / 매장' 열을 줄인다
+  const columns = isSelecting
+    ? COLUMNS.map((column) =>
+        column.label === "테스트 기간 / 매장"
+          ? { ...column, width: column.width - SELECT_COLUMN_WIDTH }
+          : column,
+      )
+    : COLUMNS;
+  // 전체 선택은 현재 페이지에서 삭제 가능한(작성 중) 테스트만 대상으로 한다
+  const deletableRows = rows.filter((test) => isDeletable(test.status));
+  const isAllSelected =
+    deletableRows.length > 0 &&
+    deletableRows.every((test) => selectedIds?.has(test.test_id));
+
   return (
     <Container>
       <TableArea>
         <Table>
           <colgroup>
-            {COLUMNS.map(({ label, width }) => (
+            {isSelecting && <col style={{ width: SELECT_COLUMN_WIDTH }} />}
+            {columns.map(({ label, width }) => (
               <col key={label} style={{ width }} />
             ))}
           </colgroup>
           <thead>
             <tr>
-              {COLUMNS.map(({ label }) => (
+              {isSelecting && (
+                <SelectHeaderCell scope="col">
+                  <SelectCheckbox
+                    checked={isAllSelected}
+                    onChange={() => onToggleAll(deletableRows, !isAllSelected)}
+                    label="현재 페이지의 작성 중 테스트 전체 선택"
+                    disabled={deletableRows.length === 0}
+                  />
+                </SelectHeaderCell>
+              )}
+              {columns.map(({ label }) => (
                 <HeaderCell key={label} scope="col">
                   {label}
                 </HeaderCell>
@@ -38,10 +71,18 @@ export default function TestTable({
           </thead>
           <tbody>
             {rows.length > 0 ? (
-              rows.map((test) => <TestTableRow key={test.test_id} test={test} />)
+              rows.map((test) => (
+                <TestTableRow
+                  key={test.test_id}
+                  test={test}
+                  isSelecting={isSelecting}
+                  isSelected={selectedIds?.has(test.test_id) ?? false}
+                  onToggle={() => onToggleRow(test.test_id)}
+                />
+              ))
             ) : (
               <tr>
-                <EmptyCell colSpan={COLUMNS.length}>
+                <EmptyCell colSpan={columns.length + (isSelecting ? 1 : 0)}>
                   해당 상태의 테스트가 없습니다.
                 </EmptyCell>
               </tr>
@@ -114,6 +155,14 @@ const HeaderCell = styled.th`
   &:last-child {
     padding-right: 28px;
   }
+`;
+
+const SelectHeaderCell = styled(HeaderCell)`
+  &:first-child {
+    padding: 0 0 0 20px;
+  }
+  vertical-align: middle;
+  line-height: 0;
 `;
 
 const EmptyCell = styled.td`

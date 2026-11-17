@@ -9,6 +9,9 @@ const isEmptyMock = () =>
 const ok = (data, init) =>
   HttpResponse.json({ success: true, message: null, data }, init);
 
+// 삭제가 반영되도록 목업 목록을 복사해 메모리에서 관리한다 (새로고침하면 초기화)
+let tests = [...mockTests];
+
 // 새로 만드는 초안의 id (목업 데이터와 겹치지 않게 큰 수부터 시작)
 let nextTestId = 100;
 
@@ -36,6 +39,28 @@ const createDraft = () => {
 };
 
 export const handlers = [
-  http.get("/api/tests/", () => ok(isEmptyMock() ? [] : mockTests)),
+  http.get("/api/tests/", () => ok(isEmptyMock() ? [] : tests)),
   http.post("/api/tests/", () => ok(createDraft(), { status: 201 })),
+  http.delete("/api/tests/:testId/", ({ params }) => {
+    const testId = Number(params.testId);
+    if (!tests.some((test) => test.test_id === testId)) {
+      return HttpResponse.json(
+        { success: false, message: "테스트를 찾을 수 없습니다.", data: null },
+        { status: 404 },
+      );
+    }
+    // 실서버와 동일: 작성 중(DRAFT) 테스트만 삭제 가능
+    if (tests.find((test) => test.test_id === testId).status !== "DRAFT") {
+      return HttpResponse.json(
+        {
+          success: false,
+          message: "작성 중인 테스트만 삭제할 수 있습니다.",
+          data: null,
+        },
+        { status: 409 },
+      );
+    }
+    tests = tests.filter((test) => test.test_id !== testId);
+    return new HttpResponse(null, { status: 204 });
+  }),
 ];

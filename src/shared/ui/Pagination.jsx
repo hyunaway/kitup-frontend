@@ -1,7 +1,7 @@
 import styled, { css } from "styled-components";
 import { getPageItems } from "@/shared/utils/pagination";
 
-const ACTIVE_COLOR = "#8670ff";
+const ACTIVE_COLOR = "#0f172a";
 
 export default function Pagination({ page, totalPages, onChange }) {
   const items = getPageItems(page, totalPages);
