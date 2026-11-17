@@ -1,25 +1,143 @@
 // 분석 리포트 화면
-import { useNavigate } from "react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 import styled from "styled-components";
+import { useReport } from "@/features/report/api/useReport";
+import { useGenerateReport } from "@/features/report/api/useGenerateReport";
 import ConditionSummary from "@/features/report/components/ConditionSummary";
 import ProfitStructure from "@/features/report/components/ProfitStructure";
 import SalesPattern from "@/features/report/components/SalesPattern";
 import CustomerReaction from "@/features/report/components/CustomerReaction";
 import ExperimentSuggestion from "@/features/report/components/ExperimentSuggestion";
+import EvidenceReviewModal from "@/features/report/components/EvidenceReviewModal";
+import ReportAiStatus from "@/features/report/components/ReportAiStatus";
 import add_circle_icon from "@/images/Report/add_circle_icon.svg";
+
+// 개선안의 근거 리뷰 번호로 인용문을 찾기 위한 { review_id → quote } 맵
+function buildQuoteMap(reviewAnalysis) {
+  const map = new Map();
+  if (!reviewAnalysis) return map;
+
+  [...reviewAnalysis.strengths, ...reviewAnalysis.improvement_candidates]
+    .flatMap(({ quotes }) => quotes)
+    .forEach(({ review_id, quote }) => {
+      if (!map.has(review_id)) map.set(review_id, quote);
+    });
+  return map;
+}
 
 export default function ReportPage() {
   const navigate = useNavigate();
+  const { testId } = useParams();
+  // 고정비 입력 페이지에서 "저장 및 리포트 생성"으로 넘어오면 고정비가 함께 전달된다.
+  const fixedCost = useLocation().state?.fixedCost;
+
+  const { data: report, error, refetch, isFetching } = useReport(testId);
+  const {
+    mutate: generateReport,
+    isPending: isGenerating,
+    error: generateError,
+  } = useGenerateReport(testId);
+  const [evidenceTarget, setEvidenceTarget] = useState(null);
+  const requestedRef = useRef(false);
+
+  const isNotCreated = !report && error?.status === 404;
+  const shouldGenerate = isNotCreated && fixedCost != null;
+
+  // 아직 생성되지 않은 리포트면 전달받은 고정비로 생성을 요청한다. (한 번만)
+  useEffect(() => {
+    if (!shouldGenerate || requestedRef.current) return;
+    requestedRef.current = true;
+    generateReport(fixedCost);
+  }, [shouldGenerate, fixedCost, generateReport]);
+
+  // 실패한 단계부터 다시 시도. 고정비는 서버에 저장된 값을 유지한다.
+  const handleRetry = useCallback(() => generateReport(undefined), [generateReport]);
+  const closeEvidence = useCallback(() => setEvidenceTarget(null), []);
+
+  const quoteById = useMemo(
+    () => buildQuoteMap(report?.review_analysis),
+    [report?.review_analysis],
+  );
+
+  // 리포트가 없고 고정비 입력도 거치지 않았다면 고정비 입력부터 받는다.
+  if (isNotCreated && fixedCost == null) {
+    return <Navigate to={`/tests/${testId}/dashboard/cost/fixed-cost`} replace />;
+  }
+
+  if (!report?.quantitative) {
+    const failure = generateError ?? (shouldGenerate ? null : error);
+
+    return (
+      <PageContainer>
+        <PageTitle>분석 리포트</PageTitle>
+        {failure ? (
+          <ReportAiStatus
+            variant="failed"
+            title="리포트를 불러오지 못했어요"
+            description={failure.message}
+            onRetry={generateError ? () => generateReport(fixedCost) : () => refetch()}
+            isRetrying={isGenerating || isFetching}
+          />
+        ) : (
+          <ReportAiStatus
+            variant="loading"
+            title={shouldGenerate ? "리포트를 생성하고 있어요" : "리포트를 불러오는 중이에요"}
+          />
+        )}
+      </PageContainer>
+    );
+  }
+
+  const {
+    quantitative,
+    review_analysis_status: reviewStatus,
+    improvement_status: improvementStatus,
+  } = report;
 
   return (
     <PageContainer>
       <PageTitle>분석 리포트</PageTitle>
-      <ConditionSummary />
-      <ProfitStructure />
-      <SalesPattern />
-      <CustomerReaction />
+      {error && (
+        <ReportAiStatus
+          variant="failed"
+          title="분석 진행 상태를 확인하지 못했어요"
+          description={error.message}
+          onRetry={() => refetch()}
+          isRetrying={isFetching}
+        />
+      )}
+      {generateError && (
+        <ReportAiStatus
+          variant="failed"
+          title="다시 시도 요청에 실패했어요"
+          description={generateError.message}
+          onRetry={handleRetry}
+          isRetrying={isGenerating}
+        />
+      )}
+      <ConditionSummary conditions={quantitative.analysis_conditions} />
+      <ProfitStructure
+        profit={quantitative.profit_analysis}
+        orderCount={quantitative.analysis_conditions.analysis_data.completed_order_count}
+      />
+      <SalesPattern salesPattern={quantitative.sales_pattern} />
+      <CustomerReaction
+        status={reviewStatus}
+        analysis={report.review_analysis}
+        onRetry={handleRetry}
+        isRetrying={isGenerating}
+        onOpenEvidence={setEvidenceTarget}
+      />
       <BottomGroup>
-        <ExperimentSuggestion />
+        <ExperimentSuggestion
+          reviewStatus={reviewStatus}
+          improvementStatus={improvementStatus}
+          improvements={report.improvements}
+          quoteById={quoteById}
+          onRetry={handleRetry}
+          isRetrying={isGenerating}
+        />
         <ActionBar>
           <ActionText>
             <p>실시간 시뮬레이션으로 수치를 즉시 검증해보세요</p>
@@ -34,6 +152,11 @@ export default function ReportPage() {
           </NewTestButton>
         </ActionBar>
       </BottomGroup>
+      <EvidenceReviewModal
+        testId={testId}
+        target={evidenceTarget}
+        onClose={closeEvidence}
+      />
     </PageContainer>
   );
 }

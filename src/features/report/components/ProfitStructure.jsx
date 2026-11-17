@@ -1,39 +1,61 @@
 import styled from "styled-components";
 import ReportSectionTitle from "@/features/report/components/ReportSectionTitle";
+import {
+  formatNumber,
+  formatPercent,
+  toRatio,
+} from "@/features/report/utils/format";
 import trend_icon from "@/images/Report/trend_icon.svg";
 import fixedcost_icon from "@/images/Report/fixedcost_icon.svg";
 import warning_icon from "@/images/Report/warning_icon.svg";
-import donut01 from "@/images/Report/donut01.svg";
-import donut02 from "@/images/Report/donut02.svg";
-import donut03 from "@/images/Report/donut03.svg";
-import donut04 from "@/images/Report/donut04.svg";
-import donut05 from "@/images/Report/donut05.svg";
-import donut06 from "@/images/Report/donut06.svg";
 
-// Figma 도넛 조각별 위치 (outer: 조각 영역, inner: 획 두께 보정)
-const DONUT_VECTORS = [
-  { src: donut01, outer: "10.71% 11.61% 11.61% 10.71%", inner: "-7.15% -7.28% -7.28% -7.15%" },
-  { src: donut02, outer: "50% 11.61% 10.71% 35.71%", inner: "0 -11.05% -13.13% -3.81%" },
-  { src: donut03, outer: "28.57% 64.29% 13.39% 10.71%", inner: "-5.31% -7.38% -8.54% -22.22%" },
-  { src: donut04, outer: "13.39% 63.39% 71.43% 17.86%", inner: "-34.23% -9.69% -17.9% -24.66%" },
-  { src: donut05, outer: "11.61% 56.25% 86.61% 36.61%", inner: "-306.62% -13.66% -300.48% -27.53%" },
-  { src: donut06, outer: "10.71% 10.71% 50% 43.75%", inner: "-14.14% -12.09% 1.01% -2.07%" },
-];
-
-const MINI_CARDS = [
-  { label: "총 매출", value: "594,000원", sub: "60건 × 9,900원", color: "#0f172a" },
-  { label: "건당 공헌이익", value: "3,040원", sub: "객단가 대비 30.7%", color: "#2563eb" },
-  { label: "추정 영업이익", value: "62,400원", sub: "영업이익률 10.5%", color: "#10b981" },
-];
-
+// 1건 판매 비용 구성 (도넛 순서 = 범례 순서)
 const COST_ITEMS = [
-  { label: "공헌이익 (30.7%)", value: "3,040", color: "#2563eb", main: true },
-  { label: "식재료비 (28.3%)", value: "2,800", color: "#f59e0b" },
-  { label: "배달 수수료 (9.8%)", value: "970", prefix: "평균 ", color: "#f43f5e" },
-  { label: "포장 부자재 (3.0%)", value: "300", color: "#a855f7" },
+  { key: "contribution_margin", label: "공헌이익", color: "#2563eb", main: true },
+  { key: "ingredient_cost", label: "식재료비", color: "#f59e0b" },
+  { key: "delivery_fee", label: "배달비", color: "#f43f5e", prefix: "평균 " },
+  { key: "delivery_commission", label: "중개 수수료", color: "#fb923c", prefix: "평균 " },
+  { key: "packaging_cost", label: "포장 부자재", color: "#a855f7" },
 ];
 
-export default function ProfitStructure() {
+// 매출 대비 비율로 도넛 조각을 만든다. 합이 100%를 넘지 않게 자른다.
+function buildDonutGradient(structure) {
+  let start = 0;
+  const stops = COST_ITEMS.map(({ key, color }) => {
+    const end = Math.min(start + toRatio(structure[key]?.revenue_percentage), 100);
+    const stop = `${color} ${start}% ${end}%`;
+    start = end;
+    return stop;
+  });
+  stops.push(`#e2e8f0 ${start}% 100%`);
+  return `conic-gradient(${stops.join(", ")})`;
+}
+
+export default function ProfitStructure({ profit, orderCount }) {
+  const { summary, per_order_structure: structure } = profit;
+  const isLoss = summary.estimated_operating_profit < 0;
+
+  const miniCards = [
+    {
+      label: "총 매출",
+      value: `${formatNumber(summary.total_revenue)}원`,
+      sub: `${formatNumber(orderCount)}건 · 건당 ${formatNumber(structure.average_revenue)}원`,
+      color: "#0f172a",
+    },
+    {
+      label: "건당 공헌이익",
+      value: `${formatNumber(summary.contribution_margin_per_order)}원`,
+      sub: `객단가 대비 ${formatPercent(summary.contribution_margin_percentage)}`,
+      color: "#2563eb",
+    },
+    {
+      label: "추정 영업이익",
+      value: `${formatNumber(summary.estimated_operating_profit)}원`,
+      sub: `영업이익률 ${formatPercent(summary.operating_profit_percentage)}`,
+      color: isLoss ? "#e11d48" : "#10b981",
+    },
+  ];
+
   return (
     <Section>
       <ReportSectionTitle title="수익 구조 분석" />
@@ -47,20 +69,22 @@ export default function ProfitStructure() {
                 <RateBadge>
                   <img src={trend_icon} alt="" aria-hidden="true" />
                   <span>
-                    공헌이익률 <b>30.7%</b>
+                    공헌이익률{" "}
+                    <b>{formatPercent(summary.contribution_margin_percentage)}</b>
                   </span>
                 </RateBadge>
               </TotalHeader>
               <TotalValue>
-                182,400<span>원</span>
+                {formatNumber(summary.total_contribution_margin)}
+                <span>원</span>
               </TotalValue>
               <p>
-                총 매출 594,000원에서 변동비(식재료·포장·수수료)를 제외한
-                금액입니다.
+                총 매출 {formatNumber(summary.total_revenue)}원에서
+                변동비(식재료·포장·배달비·수수료)를 제외한 금액입니다.
               </p>
             </TotalCard>
             <MiniRow>
-              {MINI_CARDS.map(({ label, value, sub, color }) => (
+              {miniCards.map(({ label, value, sub, color }) => (
                 <MiniCard key={label}>
                   <MiniLabel>{label}</MiniLabel>
                   <MiniValue $color={color}>{value}</MiniValue>
@@ -74,48 +98,50 @@ export default function ProfitStructure() {
               <img src={fixedcost_icon} alt="" aria-hidden="true" />
               <div>
                 <p>추가 고정비 (총계 반영)</p>
-                <span>임차료 및 클라우드 키친 슬롯 분할 배분</span>
+                <span>테스트 기간에 입력한 추가 고정비 전액</span>
               </div>
             </FixedCostInfo>
-            <FixedCostValue>120,000원</FixedCostValue>
+            <FixedCostValue>
+              {formatNumber(summary.applied_fixed_cost)}원
+            </FixedCostValue>
           </FixedCost>
         </LeftColumn>
 
         <RightColumn>
           <RightTop>
             <RightHeader>
-              <SubTitle>1건 판매(9,900원) 비용 및 마진 구조</SubTitle>
+              <SubTitle>
+                1건 판매({formatNumber(structure.average_revenue)}원) 비용 및
+                마진 구조
+              </SubTitle>
               <span>단위: 원 (KRW)</span>
             </RightHeader>
             <Breakdown>
               <Donut>
-                <DonutVectors>
-                  {DONUT_VECTORS.map(({ src, outer, inner }) => (
-                    <DonutPiece key={src} $inset={outer}>
-                      <DonutPiece $inset={inner}>
-                        <img src={src} alt="" aria-hidden="true" />
-                      </DonutPiece>
-                    </DonutPiece>
-                  ))}
-                </DonutVectors>
+                <DonutRing $gradient={buildDonutGradient(structure)} />
                 <DonutLabel>
                   <p>공헌이익률</p>
-                  <span>30.7%</span>
+                  <span>
+                    {formatPercent(structure.contribution_margin?.revenue_percentage)}
+                  </span>
                 </DonutLabel>
               </Donut>
               <Legend>
-                {COST_ITEMS.map(({ label, value, prefix, color, main }) => (
-                  <LegendItem key={label} $main={main}>
-                    <p>
-                      <LegendDot $color={color} />
-                      {label}
-                    </p>
-                    <span>
-                      {prefix}
-                      <b>{value}</b>원
-                    </span>
-                  </LegendItem>
-                ))}
+                {COST_ITEMS.map(({ key, label, color, prefix, main }) => {
+                  const item = structure[key] ?? {};
+                  return (
+                    <LegendItem key={key} $main={main}>
+                      <p>
+                        <LegendDot $color={color} />
+                        {label} ({formatPercent(item.revenue_percentage)})
+                      </p>
+                      <span>
+                        {prefix}
+                        <b>{formatNumber(item.amount)}</b>원
+                      </span>
+                    </LegendItem>
+                  );
+                })}
               </Legend>
             </Breakdown>
           </RightTop>
@@ -334,21 +360,17 @@ const Donut = styled.div`
   height: 112px;
 `;
 
-const DonutVectors = styled.div`
+// 비율에 맞춰 칠한 원판에서 가운데를 뚫어 도넛 모양을 만든다.
+const DonutRing = styled.div`
   position: absolute;
   inset: 0;
-  transform: rotate(-90deg);
-`;
-
-const DonutPiece = styled.div`
-  position: absolute;
-  inset: ${({ $inset }) => $inset};
-
-  & > img {
-    width: 100%;
-    height: 100%;
-    max-width: none;
-  }
+  border-radius: 50%;
+  background: ${({ $gradient }) => $gradient};
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 14px),
+    #000 calc(100% - 13px)
+  );
 `;
 
 const DonutLabel = styled.div`

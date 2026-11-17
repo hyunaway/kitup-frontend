@@ -1,42 +1,45 @@
 import styled from "styled-components";
 import ReportSectionTitle from "@/features/report/components/ReportSectionTitle";
 import InsightCards from "@/features/report/components/InsightCards";
+import { formatNumber, formatPercent } from "@/features/report/utils/format";
 
-const TIME_SLOTS = [
-  {
-    name: "점심 피크",
-    time: "11~13시",
-    range: "11:00 ~ 13:00 (점심 피크)",
-    count: "22건",
-    share: "36.7%",
-    sales: "217,800원",
-    barHeight: 80,
-    color: "#2563eb",
-  },
-  {
-    name: "저녁 피크",
-    time: "18~20시",
-    range: "18:00 ~ 20:00 (저녁 피크)",
-    count: "18건",
-    share: "30.0%",
-    sales: "178,200원",
-    barHeight: 65,
-    color: "#6366f1",
-  },
-  {
-    name: "기타 시간대",
-    time: "오후/야간",
-    range: "기타 시간대 (오후/야간)",
-    count: "20건",
-    share: "33.3%",
-    sales: "198,000원",
-    barHeight: 72,
-    color: "#94a3b8",
-    muted: true,
-  },
-];
+const PEAK_COLORS = ["#2563eb", "#6366f1"];
+const OTHER_COLOR = "#94a3b8";
+const MAX_BAR_HEIGHT = 80;
+const MIN_BAR_HEIGHT = 4;
 
-export default function SalesPattern() {
+// API의 시간대 구간을 차트·표에서 쓰는 형태로 바꾼다.
+// 주문이 많은 2시간 구간(최대 2개)과 나머지를 묶은 "기타"로 내려온다.
+function toTimeSlots(buckets) {
+  const maxPercentage = Math.max(
+    ...buckets.map(({ order_percentage }) => order_percentage ?? 0),
+    0,
+  );
+  let peakIndex = 0;
+
+  return buckets.map((bucket) => {
+    const muted = bucket.key === "other";
+    const color = muted ? OTHER_COLOR : PEAK_COLORS[peakIndex++ % PEAK_COLORS.length];
+    const ratio = maxPercentage > 0 ? (bucket.order_percentage ?? 0) / maxPercentage : 0;
+
+    return {
+      key: bucket.key,
+      label: bucket.label,
+      caption: muted ? "그 외 시간" : "주문 집중",
+      count: `${formatNumber(bucket.order_count)}건`,
+      share: formatPercent(bucket.order_percentage),
+      sales: `${formatNumber(bucket.revenue)}원`,
+      barHeight: Math.max(Math.round(ratio * MAX_BAR_HEIGHT), MIN_BAR_HEIGHT),
+      color,
+      muted,
+    };
+  });
+}
+
+export default function SalesPattern({ salesPattern }) {
+  const { time_buckets, peak_summary: peak, insights } = salesPattern;
+  const slots = toTimeSlots(time_buckets);
+
   return (
     <Section>
       <ReportSectionTitle title="판매 패턴 분석" />
@@ -45,8 +48,8 @@ export default function SalesPattern() {
           <Chart>
             <ChartTitle>시간대별 주문 점유율</ChartTitle>
             <Bars>
-              {TIME_SLOTS.map(({ name, share, count, barHeight, color, muted }) => (
-                <BarColumn key={name}>
+              {slots.map(({ key, share, count, barHeight, color, muted }) => (
+                <BarColumn key={key}>
                   <BarShare $color={muted ? "#64748b" : color}>{share}</BarShare>
                   <span>{count}</span>
                   <Bar $height={barHeight} $color={color} />
@@ -54,10 +57,10 @@ export default function SalesPattern() {
               ))}
             </Bars>
             <BarLabels>
-              {TIME_SLOTS.map(({ name, time }) => (
-                <div key={name}>
-                  <p>{name}</p>
-                  <span>{time}</span>
+              {slots.map(({ key, label, caption }) => (
+                <div key={key}>
+                  <p>{label}</p>
+                  <span>{caption}</span>
                 </div>
               ))}
             </BarLabels>
@@ -70,16 +73,16 @@ export default function SalesPattern() {
                   <th>시간대 분류</th>
                   <th>주문 건수</th>
                   <th>점유율</th>
-                  <th>예상 매출</th>
+                  <th>매출</th>
                 </tr>
               </thead>
               <tbody>
-                {TIME_SLOTS.map(({ name, range, count, share, sales, color, muted }) => (
-                  <tr key={name}>
+                {slots.map(({ key, label, count, share, sales, color, muted }) => (
+                  <tr key={key}>
                     <td>
                       <SlotName $muted={muted}>
                         <Dot $color={color} />
-                        {range}
+                        {label}
                       </SlotName>
                     </td>
                     <td>{count}</td>
@@ -90,14 +93,15 @@ export default function SalesPattern() {
               </tbody>
             </Table>
             <Total>
-              <p>점심·저녁 4시간 집중 매출 합계</p>
+              <p>주문 집중 구간 {formatNumber(peak.peak_order_count)}건 매출 합계</p>
               <span>
-                총 <b>396,000</b>원 (전체 매출의 66.7%)
+                총 <b>{formatNumber(peak.peak_revenue)}</b>원 (전체 매출의{" "}
+                {formatPercent(peak.peak_revenue_percentage)})
               </span>
             </Total>
           </Side>
         </TopRow>
-        <InsightCards />
+        <InsightCards insights={insights} />
       </Panel>
     </Section>
   );

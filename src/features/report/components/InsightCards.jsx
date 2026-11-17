@@ -4,43 +4,26 @@ import bulb_icon from "@/images/Report/bulb_icon.svg";
 import play_icon from "@/images/Report/play_icon.svg";
 import caution_icon from "@/images/Report/caution_icon.svg";
 
-const INSIGHTS = [
-  {
-    icon: pin_icon,
-    title: "[결과] 집중 시간대",
-    description:
-      "점심(12시)과 저녁(18~19시) 시간대에 주문이 극명하게 집중됩니다.",
-  },
-  {
-    icon: bulb_icon,
-    title: "[의미] 매출 기여도",
-    description:
-      "두 식사 시간대가 전체 매출의 약 67%를 차지하며 피크타임 중심 운영 구조입니다.",
-  },
-  {
-    icon: play_icon,
-    title: "[권장 행동] 운영 최적화",
-    description:
-      "피크 전 프렙(사전준비)을 마치고 비피크 시간대 픽업 프로모션을 전개하세요.",
-  },
-  {
-    icon: caution_icon,
-    title: "[한계] 모델 가정",
-    description:
-      "이 데이터는 가상 주문 패키지 기반이며 실제 운영 결과를 보장하지 않습니다.",
-  },
+const INSIGHT_ITEMS = [
+  { key: "result", icon: pin_icon, title: "[결과] 집중 시간대" },
+  { key: "meaning", icon: bulb_icon, title: "[의미] 매출 기여도" },
+  { key: "recommended_action", icon: play_icon, title: "[권장 행동] 운영 최적화" },
+  { key: "limitation", icon: caution_icon, title: "[한계] 모델 가정" },
 ];
 
-export default function InsightCards() {
+export default function InsightCards({ insights }) {
+  // recommended_action은 null일 수 있어 내용이 있는 카드만 보여 준다.
+  const items = INSIGHT_ITEMS.filter(({ key }) => insights?.[key]);
+
   return (
     <List>
-      {INSIGHTS.map(({ icon, title, description }) => (
-        <Item key={title}>
+      {items.map(({ key, icon, title }) => (
+        <Item key={key}>
           <ItemTitle>
             <img src={icon} alt="" aria-hidden="true" />
             {title}
           </ItemTitle>
-          <ItemDescription>{description}</ItemDescription>
+          <ItemDescription>{insights[key]}</ItemDescription>
         </Item>
       ))}
     </List>
