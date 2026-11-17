@@ -2,6 +2,9 @@ import { TEST_FILTER, TEST_STATUS } from "@/domain/testStatus";
 
 export const PAGE_SIZE = 5;
 
+// 삭제 API는 작성 중(DRAFT) 테스트만 허용한다 (그 외 상태는 409 not_draft)
+export const isDeletable = (status) => status === TEST_STATUS.DRAFT;
+
 function matchesQuery(test, query) {
   // menu_name은 작성 중(DRAFT)이면 null일 수 있음
   return (test.menu_name ?? "").toLowerCase().includes(query.toLowerCase());
