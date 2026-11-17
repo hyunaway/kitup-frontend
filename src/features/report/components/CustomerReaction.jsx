@@ -1,5 +1,12 @@
 import styled from "styled-components";
 import ReportSectionTitle from "@/features/report/components/ReportSectionTitle";
+import ReportAiStatus from "@/features/report/components/ReportAiStatus";
+import {
+  ASPECT_LABEL,
+  formatNumber,
+  formatPercent,
+  toRatio,
+} from "@/features/report/utils/format";
 import thumb_icon from "@/images/Report/thumb_icon.svg";
 import arrow_icon from "@/images/Report/arrow_icon.svg";
 
@@ -8,103 +15,158 @@ const TONE = {
   negative: { dot: "#f43f5e", text: "#e11d48", bar: "#e11d48" },
 };
 
-const VOC_GROUPS = [
-  {
-    title: "유지할 강점",
-    tone: "positive",
-    items: [
-      {
-        name: "맛·품질 만족",
-        rate: 71,
-        count: 27,
-        keywords: ["맛있어요", "재료가 신선해요", "양이 넉넉해요"],
-      },
-      {
-        name: "빠른 배달 속도",
-        rate: 34,
-        count: 13,
-        keywords: ["생각보다 빨리 왔어요", "배달이 신속해요"],
-      },
-    ],
-  },
-  {
-    title: "개선 후보",
-    tone: "negative",
-    items: [
-      {
-        name: "포장 품질",
-        rate: 26,
-        count: 10,
-        keywords: ["포장이 터져 있었어요", "국물이 샜어요"],
-      },
-      {
-        name: "가격 대비 만족도",
-        rate: 18,
-        count: 7,
-        keywords: ["조금 비싼 것 같아요", "양 대비 가격이 아쉬워요"],
-      },
-    ],
-  },
-];
+const findSentiment = (sentiments, type) =>
+  sentiments?.find(({ sentiment }) => sentiment === type) ?? {
+    count: 0,
+    review_percentage: null,
+  };
 
-export default function CustomerReaction() {
+export default function CustomerReaction({
+  status,
+  analysis,
+  onRetry,
+  isRetrying,
+  onOpenEvidence,
+}) {
   return (
     <Section>
       <ReportSectionTitle title="고객 반응 분석 (VOC)" />
+      {status === "SUCCEEDED" && analysis ? (
+        <ReactionContent analysis={analysis} onOpenEvidence={onOpenEvidence} />
+      ) : (
+        <ReactionStatus
+          status={status}
+          onRetry={onRetry}
+          isRetrying={isRetrying}
+        />
+      )}
+    </Section>
+  );
+}
+
+function ReactionStatus({ status, onRetry, isRetrying }) {
+  if (status === "FAILED") {
+    return (
+      <ReportAiStatus
+        variant="failed"
+        title="리뷰 분석에 실패했어요"
+        description="다시 시도하면 실패한 단계부터 분석을 이어서 진행해요."
+        onRetry={onRetry}
+        isRetrying={isRetrying}
+      />
+    );
+  }
+
+  if (status === "NOT_REQUIRED") {
+    return (
+      <ReportAiStatus
+        variant="empty"
+        title="연결된 리뷰가 없어 고객 반응 분석을 생략했어요"
+      />
+    );
+  }
+
+  return (
+    <ReportAiStatus
+      variant="loading"
+      title="AI가 고객 리뷰를 분석하고 있어요"
+      description="분석이 끝나면 이 영역에 자동으로 결과가 표시돼요."
+    />
+  );
+}
+
+function ReactionContent({ analysis, onOpenEvidence }) {
+  const positive = findSentiment(analysis.sentiments, "POSITIVE");
+  const negative = findSentiment(analysis.sentiments, "IMPROVEMENT_REQUIRED");
+
+  const groups = [
+    { title: "유지할 강점", tone: "positive", items: analysis.strengths },
+    {
+      title: "개선 후보",
+      tone: "negative",
+      items: analysis.improvement_candidates,
+    },
+  ];
+
+  return (
+    <>
       <Banner>
         <BannerInfo>
           <img src={thumb_icon} alt="" aria-hidden="true" />
           <div>
             <p>VOC 종합 만족도 지수</p>
-            <span>리뷰 38건 중 27건에서 명확한 긍정 평가 확인</span>
+            <span>
+              리뷰 {formatNumber(analysis.review_count)}건 중{" "}
+              {formatNumber(positive.count)}건에서 명확한 긍정 평가 확인
+            </span>
           </div>
         </BannerInfo>
         <Gauge>
           <GaugeLegend>
-            <GaugeLabel $color={TONE.positive.text}>긍정 71.0% (27건)</GaugeLabel>
+            <GaugeLabel $color={TONE.positive.text}>
+              긍정 {formatPercent(positive.review_percentage)} (
+              {formatNumber(positive.count)}건)
+            </GaugeLabel>
             <GaugeLabel $color={TONE.negative.text}>
-              개선요구 29.0% (11건)
+              개선요구 {formatPercent(negative.review_percentage)} (
+              {formatNumber(negative.count)}건)
             </GaugeLabel>
           </GaugeLegend>
           <GaugeBar>
-            <GaugeFill $ratio={71} />
+            <GaugeFill $ratio={toRatio(positive.review_percentage)} />
           </GaugeBar>
         </Gauge>
       </Banner>
 
       <Columns>
-        {VOC_GROUPS.map(({ title, tone, items }) => (
+        {groups.map(({ title, tone, items }) => (
           <Column key={title}>
             <ColumnTitle $color={TONE[tone].dot}>{title}</ColumnTitle>
-            {items.map(({ name, rate, count, keywords }) => (
-              <Item key={name}>
-                <ItemHeader $color={TONE[tone].text}>
-                  <p>{name}</p>
-                  <span>
-                    언급 {rate}% · {count}건
-                  </span>
-                </ItemHeader>
-                <ItemBar>
-                  <ItemFill $ratio={rate} $color={TONE[tone].bar} />
-                </ItemBar>
-                <Keywords>
-                  {keywords.map((keyword) => (
-                    <li key={keyword}>“{keyword}”</li>
-                  ))}
-                </Keywords>
-                {/* TODO: EvidenceReviewModal 연결 */}
-                <EvidenceButton type="button">
-                  근거 리뷰 {count}개 보기
-                  <img src={arrow_icon} alt="" aria-hidden="true" />
-                </EvidenceButton>
-              </Item>
-            ))}
+            {items.length === 0 && <EmptyText>해당하는 항목이 없어요.</EmptyText>}
+            {items.map(
+              ({ aspect, sentiment, review_count, review_percentage, quotes }) => (
+                <Item key={aspect}>
+                  <ItemHeader $color={TONE[tone].text}>
+                    <p>{ASPECT_LABEL[aspect] ?? aspect}</p>
+                    <span>
+                      언급 {formatPercent(review_percentage, 0)} ·{" "}
+                      {formatNumber(review_count)}건
+                    </span>
+                  </ItemHeader>
+                  <ItemBar>
+                    <ItemFill
+                      $ratio={toRatio(review_percentage)}
+                      $color={TONE[tone].bar}
+                    />
+                  </ItemBar>
+                  {quotes.length > 0 && (
+                    <Keywords>
+                      {quotes.map(({ review_id, quote }) => (
+                        <li key={review_id}>“{quote}”</li>
+                      ))}
+                    </Keywords>
+                  )}
+                  <EvidenceButton
+                    type="button"
+                    onClick={() => onOpenEvidence?.({ aspect, sentiment })}
+                  >
+                    근거 리뷰 {formatNumber(review_count)}개 보기
+                    <img src={arrow_icon} alt="" aria-hidden="true" />
+                  </EvidenceButton>
+                </Item>
+              ),
+            )}
           </Column>
         ))}
       </Columns>
-    </Section>
+    </>
   );
 }
+
+const EmptyText = styled.p`
+  font-size: 12px;
+  color: #94a3b8;
+`;
 
 const Section = styled.section`
   display: flex;

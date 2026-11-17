@@ -19,9 +19,15 @@ export async function apiClient(
   const json = await response.json().catch(() => null);
 
   if (!response.ok || json?.success === false) {
-    throw new Error(
-      json?.message ?? `API ${method} ${path} 실패 (${response.status})`,
+    const error = new Error(
+      json?.error?.message ??
+        json?.message ??
+        `API ${method} ${path} 실패 (${response.status})`,
     );
+    // 호출하는 쪽에서 404(리포트 없음) 등을 구분할 수 있도록 상태 코드를 남긴다.
+    error.status = response.status;
+    error.code = json?.error?.code;
+    throw error;
   }
 
   return json.data;

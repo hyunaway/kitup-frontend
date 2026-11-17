@@ -1,10 +1,36 @@
 import styled from "styled-components";
 import ReportSectionTitle from "@/features/report/components/ReportSectionTitle";
+import {
+  formatDate,
+  formatNumber,
+  formatPercent,
+  toRatio,
+} from "@/features/report/utils/format";
 import calendar_icon from "@/images/Report/calendar_icon.svg";
 import data_icon from "@/images/Report/data_icon.svg";
 import tag_icon from "@/images/Report/tag_icon.svg";
 
-export default function ConditionSummary() {
+const findChannel = (channels, type) =>
+  channels?.find(({ order_type }) => order_type === type) ?? {
+    order_count: 0,
+    order_percentage: null,
+  };
+
+export default function ConditionSummary({ conditions }) {
+  const {
+    operating_period: period,
+    kitchen_name,
+    analysis_data: analysis,
+    sales_conditions: sales,
+  } = conditions;
+
+  const delivery = findChannel(analysis.channels, "DELIVERY");
+  const pickup = findChannel(analysis.channels, "PICKUP");
+  const dailyHours =
+    period.operating_days > 0
+      ? sales.total_operating_hours / period.operating_days
+      : null;
+
   return (
     <Section>
       <ReportSectionTitle title="분석 조건 요약" />
@@ -17,18 +43,22 @@ export default function ConditionSummary() {
           <CardBody>
             <BigRow>
               <BigValue>
-                60<Unit>일</Unit>
+                {formatNumber(period.operating_days)}
+                <Unit>일</Unit>
               </BigValue>
               <Badge>누적 분석 기간</Badge>
             </BigRow>
             <InfoList>
               <div>
                 <dt>운영 기간</dt>
-                <dd>2025.01.06 ~ 2025.03.06</dd>
+                <dd>
+                  {formatDate(period.start_date)} ~{" "}
+                  {formatDate(period.end_date)}
+                </dd>
               </div>
               <div>
                 <dt>공유주방</dt>
-                <dd>위쿡 성수점</dd>
+                <dd>{kitchen_name}</dd>
               </div>
             </InfoList>
           </CardBody>
@@ -43,13 +73,15 @@ export default function ConditionSummary() {
             <StatBox>
               <p>완료 주문</p>
               <StatValue>
-                60<Unit>건</Unit>
+                {formatNumber(analysis.completed_order_count)}
+                <Unit>건</Unit>
               </StatValue>
             </StatBox>
             <StatBox>
               <p>연결 리뷰</p>
               <StatValue $highlight>
-                38<Unit>건</Unit>
+                {formatNumber(analysis.linked_review_count)}
+                <Unit>건</Unit>
               </StatValue>
             </StatBox>
           </StatRow>
@@ -57,15 +89,17 @@ export default function ConditionSummary() {
             <GaugeLegend>
               <p>
                 <Dot $color="#2563eb" />
-                배달 42건 (70%)
+                배달 {formatNumber(delivery.order_count)}건 (
+                {formatPercent(delivery.order_percentage, 0)})
               </p>
               <p>
                 <Dot $color="#94a3b8" />
-                픽업 18건 (30%)
+                픽업 {formatNumber(pickup.order_count)}건 (
+                {formatPercent(pickup.order_percentage, 0)})
               </p>
             </GaugeLegend>
             <GaugeBar>
-              <GaugeFill $ratio={70} />
+              <GaugeFill $ratio={toRatio(delivery.order_percentage)} />
             </GaugeBar>
           </Gauge>
         </Card>
@@ -78,17 +112,21 @@ export default function ConditionSummary() {
           <PriceBlock>
             <p>기준 대표 메뉴 판매가</p>
             <BigValue>
-              9,900<Unit>원</Unit>
+              {formatNumber(sales.selling_price)}
+              <Unit>원</Unit>
             </BigValue>
           </PriceBlock>
           <InfoList>
             <div>
               <dt>총 가동 시간</dt>
-              <dd>180시간 (일 3시간)</dd>
+              <dd>
+                {formatNumber(sales.total_operating_hours, 1)}시간
+                {dailyHours != null && ` (일 ${formatNumber(dailyHours, 1)}시간)`}
+              </dd>
             </div>
             <div>
               <dt>시간당 평균 주문</dt>
-              <dd>0.33건 / hr</dd>
+              <dd>{formatNumber(sales.orders_per_hour, 2)}건 / hr</dd>
             </div>
           </InfoList>
         </Card>
