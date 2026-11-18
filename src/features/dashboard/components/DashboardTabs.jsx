@@ -1,11 +1,11 @@
 import { NavLink } from "react-router";
-import './DashboardTabs.css'
+import "./DashboardTabs.css";
 
 const DashboardTabs = () => {
   return (
     <div className="DashboardTabs_wrap">
       <NavLink
-        to="/tests/1/dashboard/operation"
+        to="operation"
         className={({ isActive }) => (isActive ? "selected" : "")}
       >
         운영 현황

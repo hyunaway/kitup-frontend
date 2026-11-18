@@ -39,6 +39,7 @@ const StepSidebar = () => {
         type="button"
         className={`stepsidebar_2 ${isActive02 ? "active" : ""}`}
         onClick={() => navigate(`/tests/${testId}/dashboard`)}
+        disabled={isActive01}
       >
         <img
           src={isActive02 ? sidebar_icon02_active : sidebar_icon02}
@@ -50,6 +51,7 @@ const StepSidebar = () => {
         type="button"
         className={`stepsidebar_3 ${isActive03 ? "active" : ""}`}
         onClick={() => navigate(`/tests/${testId}/report`)}
+        disabled={isActive01 || isActive02}
       >
         <img
           src={isActive03 ? sidebar_icon03_active : sidebar_icon03}

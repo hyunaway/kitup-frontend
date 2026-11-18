@@ -116,14 +116,17 @@ const OrdersTabPage = () => {
                 </td>
                 <td>{order.sales_amount.toLocaleString("ko-KR")}원</td>
                 <td>
-                  <button
-                    className="orders_review"
-                    type="button"
-                    onClick={() => setSelectedReview(order)}
-                    disabled={!order.review?.content}
-                  >
-                    리뷰 확인하기
-                  </button>
+                  {order.review?.content ? (
+                    <button
+                      className="orders_review"
+                      type="button"
+                      onClick={() => setSelectedReview(order)}
+                    >
+                      리뷰 확인하기
+                    </button>
+                  ) : (
+                    <span className="orders_review_empty">리뷰 미작성</span>
+                  )}
                 </td>
               </tr>
             ))}

@@ -27,3 +27,7 @@
   border-left: 2px solid var(--text);
   font-weight: 600;
 }
+
+.StepSidebar_wrap button:disabled {
+  cursor: not-allowed;
+}
