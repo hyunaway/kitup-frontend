@@ -7,6 +7,15 @@ const MenuBasicForm = ({
   setMenuInfo,
   businessHourOptions = [],
   isEditable,
+  menuNameInputRef,
+  menuNameError,
+  clearMenuNameError,
+  sellingPriceInputRef,
+  sellingPriceError,
+  clearSellingPriceError,
+  businessHoursTriggerRef,
+  businessHoursError,
+  clearBusinessHoursError,
 }) => {
   const [isHoursOpen, setIsHoursOpen] = useState(false);
   const [tempStartTime, setTempStartTime] = useState("");
@@ -44,6 +53,7 @@ const MenuBasicForm = ({
 
     setHoursError("");
     setIsHoursOpen(false);
+    if (businessHoursError) clearBusinessHoursError();
   };
 
   return (
@@ -61,36 +71,48 @@ const MenuBasicForm = ({
               메뉴명 <span>*</span>
             </p>
             <input
+              ref={menuNameInputRef}
               type="text"
               maxLength={30}
+              className={menuNameError ? "input-error" : ""}
               value={menuInfo.menuName}
               disabled={!isEditable}
-              onChange={(e) =>
+              onChange={(e) => {
                 setMenuInfo((prev) => ({
                   ...prev,
                   menuName: e.target.value,
-                }))
-              }
+                }));
+                if (menuNameError) clearMenuNameError();
+              }}
             />
+            {menuNameError && (
+              <p className="menubasicform_error" role="alert">
+                메뉴명을 입력해 주세요.
+              </p>
+            )}
           </div>
 
           <div className="m_m_t_2">
             <p>
               예상 판매가 <span>*</span>
             </p>
-            <div className="m_m_t_2_box">
+            <div
+              className={`m_m_t_2_box ${sellingPriceError ? "input-error" : ""}`}
+            >
               <input
+                ref={sellingPriceInputRef}
                 type="number"
                 min="1"
                 step="1"
                 value={menuInfo.sellingPrice}
                 disabled={!isEditable}
-                onChange={(e) =>
+                onChange={(e) => {
                   setMenuInfo((prev) => ({
                     ...prev,
                     sellingPrice: e.target.value,
-                  }))
-                }
+                  }));
+                  if (sellingPriceError) clearSellingPriceError();
+                }}
               />
               <p>원 (KRW)</p>
             </div>
@@ -110,7 +132,7 @@ const MenuBasicForm = ({
                 onChange={(e) =>
                   setMenuInfo((prev) => ({
                     ...prev,
-                    packagingCost: e.target.value,
+                    packagingCost: e.target.value === "" ? "0" : e.target.value,
                   }))
                 }
               />
@@ -121,8 +143,11 @@ const MenuBasicForm = ({
           <div className="m_m_b_2">
             <p>운영 시간대</p>
 
-            <div className="m_m_b_2_box">
+            <div
+              className={`m_m_b_2_box ${businessHoursError ? "input-error" : ""}`}
+            >
               <button
+                ref={businessHoursTriggerRef}
                 type="button"
                 className="business-hours-trigger"
                 onClick={handleOpenHours}

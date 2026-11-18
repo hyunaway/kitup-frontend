@@ -124,3 +124,17 @@
 .selected .c_m_r_t_img {
   background-color: var(--text);
 }
+
+/* ================================================ */
+
+.CostMethodSelector_wrap.input-error .c_m_left,
+.CostMethodSelector_wrap.input-error .c_m_right {
+  outline: 2px solid #f43f5e;
+  outline-offset: -2px;
+}
+
+.costmethodselector_error {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #f43f5e;
+}
