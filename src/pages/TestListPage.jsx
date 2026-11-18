@@ -125,7 +125,7 @@ export default function TestListPage() {
 
   return (
     <PageContainer>
-      <Header />
+      <Header showHomeButton={false} />
       <MainContent>
         <HeadingRow>
           <PageHeading
