@@ -5,9 +5,18 @@ import ai01_icon from "@/images/Onboarding/ai01_icon.svg";
 import ai02_icon from "@/images/Onboarding/ai02_icon.svg";
 import check_icon from "@/images/Onboarding/check_icon.svg";
 
-const CostMethodSelector = ({ selectedMethod, setSelectedMethod }) => {
+const CostMethodSelector = ({
+  selectedMethod,
+  setSelectedMethod,
+  costMethodRef,
+  costMethodError,
+  clearCostMethodError,
+}) => {
   return (
-    <div className="CostMethodSelector_wrap">
+    <div
+      ref={costMethodRef}
+      className={`CostMethodSelector_wrap ${costMethodError ? "input-error" : ""}`}
+    >
       <div className="costmethodselector_top">
         <p>원가 산정 방법 선택</p>
         <span>
@@ -18,7 +27,10 @@ const CostMethodSelector = ({ selectedMethod, setSelectedMethod }) => {
       <div className="costmethodselector_main">
         <div
           className={`c_m_left ${selectedMethod === "recipe" ? "selected" : ""}`}
-          onClick={() => setSelectedMethod("recipe")}
+          onClick={() => {
+            setSelectedMethod("recipe");
+            if (costMethodError) clearCostMethodError();
+          }}
         >
           <div className="c_m_l_top">
             <div className="c_m_l_title">
@@ -49,7 +61,10 @@ const CostMethodSelector = ({ selectedMethod, setSelectedMethod }) => {
 
         <div
           className={`c_m_right ${selectedMethod === "ai" ? "selected" : ""}`}
-          onClick={() => setSelectedMethod("ai")}
+          onClick={() => {
+            setSelectedMethod("ai");
+            if (costMethodError) clearCostMethodError();
+          }}
         >
           <div className="c_m_r_top">
             <div className="c_m_r_title">
@@ -72,6 +87,12 @@ const CostMethodSelector = ({ selectedMethod, setSelectedMethod }) => {
           </div>
         </div>
       </div>
+
+      {costMethodError && (
+        <p className="costmethodselector_error" role="alert">
+          원가 산정 방법을 선택해 주세요.
+        </p>
+      )}
     </div>
   );
 };

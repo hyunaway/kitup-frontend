@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   createTest,
@@ -15,7 +15,7 @@ import next_btn from "@/images/Onboarding/next_btn.svg";
 function MenuRegisterPage() {
   const navigate = useNavigate();
   const { testId: routeTestId } = useParams();
-  const [selectedMethod, setSelectedMethod] = useState("recipe");
+  const [selectedMethod, setSelectedMethod] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [menuInfo, setMenuInfo] = useState({
@@ -30,6 +30,10 @@ function MenuRegisterPage() {
   const [defaultsError, setDefaultsError] = useState("");
   const [draftId, setDraftId] = useState(null);
   const [isEditable, setIsEditable] = useState(true);
+  const menuNameInputRef = useRef(null);
+  const sellingPriceInputRef = useRef(null);
+  const businessHoursTriggerRef = useRef(null);
+  const costMethodRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -100,8 +104,15 @@ function MenuRegisterPage() {
     const sellingPrice = Number(menuInfo.sellingPrice);
     const packagingCost = Number(menuInfo.packagingCost);
 
-    if (menuName.length < 1 || menuName.length > 30) {
-      setError("메뉴명은 1~30자로 입력해 주세요.");
+    if (!menuName) {
+      setError("메뉴명을 입력해 주세요.");
+      menuNameInputRef.current?.focus();
+      return;
+    }
+
+    if (menuName.length > 30) {
+      setError("메뉴명은 최대 30자까지 입력할 수 있습니다.");
+      menuNameInputRef.current?.focus();
       return;
     }
 
@@ -111,11 +122,27 @@ function MenuRegisterPage() {
       sellingPrice < 1
     ) {
       setError("판매가는 1 이상의 정수로 입력해 주세요.");
+      sellingPriceInputRef.current?.focus();
       return;
     }
 
     if (!Number.isFinite(packagingCost) || packagingCost < 0) {
       setError("포장비는 0 이상으로 입력해 주세요.");
+      return;
+    }
+
+    if (!menuInfo.businessStartTime || !menuInfo.businessEndTime) {
+      setError("운영 시간대를 선택해 주세요.");
+      businessHoursTriggerRef.current?.focus();
+      return;
+    }
+
+    if (!selectedMethod) {
+      setError("원가 산정 방법을 선택해 주세요.");
+      costMethodRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
       return;
     }
 
@@ -142,11 +169,8 @@ function MenuRegisterPage() {
         menu_name: menuName,
         selling_price: sellingPrice,
         packaging_cost: packagingCost,
-        ...(menuInfo.businessStartTime &&
-          menuInfo.businessEndTime && {
-            business_start_time: menuInfo.businessStartTime,
-            business_end_time: menuInfo.businessEndTime,
-          }),
+        business_start_time: menuInfo.businessStartTime,
+        business_end_time: menuInfo.businessEndTime,
       });
 
       navigate(
@@ -175,17 +199,35 @@ function MenuRegisterPage() {
           setMenuInfo={setMenuInfo}
           businessHourOptions={businessHourOptions}
           isEditable={isEditable}
+          menuNameInputRef={menuNameInputRef}
+          menuNameError={error === "메뉴명을 입력해 주세요."}
+          clearMenuNameError={() => setError("")}
+          sellingPriceInputRef={sellingPriceInputRef}
+          sellingPriceError={
+            error === "판매가는 1 이상의 정수로 입력해 주세요."
+          }
+          clearSellingPriceError={() => setError("")}
+          businessHoursTriggerRef={businessHoursTriggerRef}
+          businessHoursError={error === "운영 시간대를 선택해 주세요."}
+          clearBusinessHoursError={() => setError("")}
         />
         <div className="menuregister_main_02">
           <CostMethodSelector
             selectedMethod={selectedMethod}
             setSelectedMethod={setSelectedMethod}
+            costMethodRef={costMethodRef}
+            costMethodError={error === "원가 산정 방법을 선택해 주세요."}
+            clearCostMethodError={() => setError("")}
           />
         </div>
       </div>
       {defaultsLoading && <p>기본 설정을 불러오는 중입니다.</p>}
       {defaultsError && <p role="alert">{defaultsError}</p>}
-      {error && <p role="alert">{error}</p>}
+      {error &&
+        error !== "메뉴명을 입력해 주세요." &&
+        error !== "원가 산정 방법을 선택해 주세요." && (
+          <p role="alert">{error}</p>
+        )}
       {!isEditable && (
         <p role="alert">리포트가 생성된 테스트는 수정할 수 없습니다.</p>
       )}
@@ -201,7 +243,9 @@ function MenuRegisterPage() {
           ? "처리 중..."
           : selectedMethod === "recipe"
             ? "계속 (레시피 입력)"
-            : "계속 (AI 원가 추정)"}
+            : selectedMethod === "ai"
+              ? "계속 (AI 원가 추정)"
+              : "계속"}
         <img src={next_btn} alt="" />
       </button>
     </div>
