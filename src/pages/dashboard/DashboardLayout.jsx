@@ -7,7 +7,6 @@ import DashboardTabs from "@/features/dashboard/components/DashboardTabs";
 import "./DashboardLayout.css";
 import update_icon from "@/images/Dashboard/update_icon.svg";
 import edit_icon from "@/images/Dashboard/edit_icon.svg";
-import add_icon from "@/images/Dashboard/add_icon.svg";
 
 function DashboardLayout() {
   const navigate = useNavigate();
@@ -108,13 +107,6 @@ function DashboardLayout() {
             <p>{testInfo?.kitchen_name || "공유주방 미지정"}</p>
           </div>
         </div>
-        <button
-          className="d_t_finish"
-          type="button"
-          onClick={() => navigate(`/tests/${testId}/dashboard/cost/fixed-cost`)}
-        >
-          테스트 종료
-        </button>
       </div>
 
       <div className="dashboardlayout_buttons">
@@ -143,13 +135,6 @@ function DashboardLayout() {
           <img src={edit_icon} alt="" />
           원가 수정하기
         </button>
-        <button
-          type="button"
-          onClick={() => navigate(`/tests/${testId}/dashboard/cost/fixed-cost`)}
-        >
-          <img src={add_icon} alt="" />
-          추가 고정비 입력
-        </button>
       </div>
 
       {testError && <p role="alert">{testError}</p>}
@@ -160,6 +145,23 @@ function DashboardLayout() {
 
       <div className="dashboardlayout_main">
         <Outlet context={{ refreshKey }} />
+      </div>
+
+      <div className="dashboardlayout_finish">
+        <div className="dashboardlayout_finish_text">
+          <p>테스트를 종료하시겠습니까?</p>
+          <span>
+            종료 후에는 판매 내역을 추가로 입력하거나 수정할 수 없으며,
+            현재까지의 데이터로 분석 리포트가 제공됩니다.
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => navigate(`/tests/${testId}/dashboard/cost/fixed-cost`)}
+        >
+          테스트 종료하기
+        </button>
       </div>
 
       {isImportModalOpen && (
