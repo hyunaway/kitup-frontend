@@ -111,3 +111,7 @@
 .IngredientRowList_wrap input[type="number"] {
   appearance: textfield;
 }
+
+.IngredientRowList_wrap .field-error {
+  border-color: red;
+}

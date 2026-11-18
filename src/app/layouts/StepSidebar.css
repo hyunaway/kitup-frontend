@@ -28,6 +28,7 @@
   font-weight: 600;
 }
 
-.StepSidebar_wrap button:disabled {
+.StepSidebar_wrap button:disabled,
+.stepsidebar_2:disabled {
   cursor: not-allowed;
 }

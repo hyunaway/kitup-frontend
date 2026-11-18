@@ -2,6 +2,11 @@ import { useState } from "react";
 import "./MenuBasicForm.css";
 import drop_icon from "@/images/Onboarding/drop_icon.svg";
 
+const formatNumber = (value) => {
+  if (value === "" || value == null) return "";
+  return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
 const MenuBasicForm = ({
   menuInfo,
   setMenuInfo,
@@ -101,15 +106,14 @@ const MenuBasicForm = ({
             >
               <input
                 ref={sellingPriceInputRef}
-                type="number"
-                min="1"
-                step="1"
-                value={menuInfo.sellingPrice}
+                type="text"
+                inputMode="numeric"
+                value={formatNumber(menuInfo.sellingPrice)}
                 disabled={!isEditable}
                 onChange={(e) => {
                   setMenuInfo((prev) => ({
                     ...prev,
-                    sellingPrice: e.target.value,
+                    sellingPrice: e.target.value.replace(/\D/g, ""),
                   }));
                   if (sellingPriceError) clearSellingPriceError();
                 }}
@@ -124,15 +128,15 @@ const MenuBasicForm = ({
             <p>포장비</p>
             <div className="m_m_b_1_box">
               <input
-                type="number"
-                min="0"
+                type="text"
+                inputMode="numeric"
                 placeholder="입력해 주세요"
-                value={menuInfo.packagingCost}
+                value={formatNumber(menuInfo.packagingCost)}
                 disabled={!isEditable}
                 onChange={(e) =>
                   setMenuInfo((prev) => ({
                     ...prev,
-                    packagingCost: e.target.value === "" ? "0" : e.target.value,
+                    packagingCost: e.target.value.replace(/\D/g, "") || "0",
                   }))
                 }
               />

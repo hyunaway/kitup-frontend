@@ -1,4 +1,6 @@
 import { useNavigate, useLocation, useParams } from "react-router";
+import { useEffect, useState } from "react";
+import { getTestDetail } from "@/features/cost/api/menuTests";
 import "./StepSidebar.css";
 import sidebar_icon01 from "@/images/CommonComponents/sidebar_icon01.svg";
 import sidebar_icon01_active from "@/images/CommonComponents/sidebar_icon01_active.svg";
@@ -11,6 +13,15 @@ const StepSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { testId } = useParams();
+  const [testStatus, setTestStatus] = useState(null);
+
+  useEffect(() => {
+    if (!testId) return;
+
+    getTestDetail(testId)
+      .then((result) => setTestStatus(result.data.status))
+      .catch(() => setTestStatus(null));
+  }, [testId, location.pathname]);
 
   const isActive01 =
     location.pathname === "/tests/new" ||
@@ -25,6 +36,7 @@ const StepSidebar = () => {
       <button
         type="button"
         className={`stepsidebar_1 ${isActive01 ? "active" : ""}`}
+        disabled={!isActive01}
         onClick={() =>
           navigate(testId ? `/tests/${testId}/onboarding/menu` : "/tests/new")
         }
@@ -39,7 +51,7 @@ const StepSidebar = () => {
         type="button"
         className={`stepsidebar_2 ${isActive02 ? "active" : ""}`}
         onClick={() => navigate(`/tests/${testId}/dashboard`)}
-        disabled={isActive01}
+        disabled={isActive01 || testStatus === "COMPLETED"}
       >
         <img
           src={isActive02 ? sidebar_icon02_active : sidebar_icon02}

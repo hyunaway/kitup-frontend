@@ -26,6 +26,7 @@ function RecipeInputPage() {
   );
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [showEmptyErrors, setShowEmptyErrors] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -97,6 +98,8 @@ function RecipeInputPage() {
   }, [testId]);
 
   const handleIngredientChange = (id, field, value) => {
+    setShowEmptyErrors(false);
+
     setIngredients((prev) =>
       prev.map((ingredient) =>
         ingredient.id === id ? { ...ingredient, [field]: value } : ingredient,
@@ -117,6 +120,31 @@ function RecipeInputPage() {
     // 재료 개수 검사
     if (ingredients.length < 1 || ingredients.length > 20) {
       setSaveError("식재료는 1개 이상 20개 이하로 입력해 주세요.");
+      return;
+    }
+
+    const emptyItem = ingredients
+      .map((item) => ({
+        id: item.id,
+        field: ["name", "quantity", "unit", "price"].find(
+          (field) => String(item[field] ?? "").trim() === "",
+        ),
+      }))
+      .find((item) => item.field);
+
+    if (emptyItem) {
+      setShowEmptyErrors(true);
+      setSaveError("빈칸을 모두 입력해 주세요.");
+
+      requestAnimationFrame(() => {
+        const target = document.querySelector(
+          `[data-id="${emptyItem.id}"] [data-field="${emptyItem.field}"]`,
+        );
+
+        target?.scrollIntoView({ behavior: "smooth", block: "center" });
+        target?.focus({ preventScroll: true });
+      });
+
       return;
     }
 
@@ -233,6 +261,7 @@ function RecipeInputPage() {
                 key={ingredient.id}
                 ingredient={ingredient}
                 ingredientUnitOptions={ingredientUnitOptions}
+                showEmptyErrors={showEmptyErrors}
                 onChange={(field, value) =>
                   handleIngredientChange(ingredient.id, field, value)
                 }
@@ -242,19 +271,26 @@ function RecipeInputPage() {
           </div>
 
           <div
-            className="r_m_m_bot"
-            onClick={() =>
-              setIngredients((prev) => [
-                ...prev,
-                {
-                  id: Math.max(0, ...prev.map((item) => item.id)) + 1,
-                  name: "",
-                  quantity: "",
-                  unit: "",
-                  price: "",
-                },
-              ])
-            }
+            className={`r_m_m_bot ${ingredients.length >= 20 ? "disabled" : ""}`}
+            onClick={() => {
+              if (ingredients.length >= 20) return;
+
+              setShowEmptyErrors(false);
+              setIngredients((prev) =>
+                prev.length >= 20
+                  ? prev
+                  : [
+                      ...prev,
+                      {
+                        id: Math.max(0, ...prev.map((item) => item.id)) + 1,
+                        name: "",
+                        quantity: "",
+                        unit: "",
+                        price: "",
+                      },
+                    ],
+              );
+            }}
           >
             <img src={plus_icon} alt="" />
             <p>재료 추가</p>
