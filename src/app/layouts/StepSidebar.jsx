@@ -12,9 +12,13 @@ const StepSidebar = () => {
   const location = useLocation();
   const { testId } = useParams();
 
-  const isActive01 = location.pathname.includes("/onboarding/");
+  const isActive01 =
+    location.pathname === "/tests/new" ||
+    location.pathname.includes("/onboarding/");
   const isActive02 = location.pathname.includes("/dashboard");
-  const isActive03 = location.pathname.endsWith("/report");
+  const isActive03 =
+    location.pathname.endsWith("/precheck") ||
+    location.pathname.endsWith("/report");
 
   return (
     <div className="StepSidebar_wrap">
@@ -53,14 +57,6 @@ const StepSidebar = () => {
         />
         <p>분석 리포트</p>
       </button>
-      {/* <button
-        type="button"
-        className={`stepsidebar_4 ${isActive04 ? "active" : ""}`}
-        onClick={() => navigate(`/tests/${testId}/simulator`)}
-      >
-        <img src={sidebar_icon04} alt="사이드바04 아이콘" />
-        <p>개선 시뮬레이터</p>
-      </button> */}
     </div>
   );
 };
