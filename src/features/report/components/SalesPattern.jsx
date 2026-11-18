@@ -122,7 +122,7 @@ const Panel = styled.div`
   flex-direction: column;
   gap: 16px;
 
-  height: 398px;
+  min-height: 398px;
   padding: 24px;
 
   border: 1px solid #e2e8f0;
@@ -136,7 +136,7 @@ const Panel = styled.div`
 const TopRow = styled.div`
   display: flex;
   justify-content: space-between;
-  height: 250px;
+  min-height: 250px;
 `;
 
 const Chart = styled.div`
