@@ -7,7 +7,8 @@ import {
   getTestDetail,
 } from "@/features/cost/api/menuTests";
 import IngredientRowList from "@/features/cost/components/IngredientRowList";
-import DeleteModal from "@/features/cost/components/DeleteModal";
+import ConfirmModal from "@/shared/ui/ConfirmModal";
+import { getIngredientDeleteDescription } from "@/features/cost/utils/deleteMessage";
 import "./IngredientEditPage.css";
 import plus_icon from "@/images/Dashboard/plus_icon.svg";
 import { getDashboardChannels } from "@/features/dashboard/api/dashboard";
@@ -334,12 +335,14 @@ const IngredientEditPage = () => {
         </button>
       </div>
 
-      {deleteTarget !== null && (
-        <DeleteModal
-          onClose={() => setDeleteTarget(null)}
-          onDelete={handleDelete}
-        />
-      )}
+      <ConfirmModal
+        isOpen={deleteTarget !== null}
+        title="식재료 삭제 확인"
+        description={getIngredientDeleteDescription(ingredients, deleteTarget)}
+        confirmLabel="삭제"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

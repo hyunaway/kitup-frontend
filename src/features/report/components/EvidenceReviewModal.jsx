@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import styled from "styled-components";
 import { useEvidenceReviews } from "@/features/report/api/useEvidenceReviews";
 import { ASPECT_LABEL, formatDateTime } from "@/features/report/utils/format";
+import close_icon from "@/images/TestList/clear_icon.svg";
 
 const SENTIMENT_LABEL = { POSITIVE: "긍정", NEGATIVE: "부정" };
 
@@ -39,7 +40,7 @@ export default function EvidenceReviewModal({ testId, target, onClose }) {
             {reviews && <span>총 {reviews.length}건 · 최신순</span>}
           </div>
           <CloseButton type="button" onClick={onClose} aria-label="닫기">
-            <span aria-hidden="true">×</span>
+            <img src={close_icon} alt="" aria-hidden="true" />
           </CloseButton>
         </Header>
 
@@ -115,13 +116,32 @@ const Header = styled.div`
 
 const CloseButton = styled.button`
   display: flex;
-  padding: 0 4px;
-  border: none;
-  background: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  margin: -6px -6px 0 0;
+  padding: 0;
 
-  font-size: 22px;
-  line-height: 1;
-  color: #64748b;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f1f5f9;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #94a3b8;
+    outline-offset: 1px;
+  }
+
+  img {
+    width: 16px;
+    height: 16px;
+  }
 `;
 
 const Body = styled.div`

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import styled from "styled-components";
 import PageHeading from "../shared/ui/PageHeading";
 import EmptyState from "../shared/ui/EmptyState";
+import ConfirmModal from "../shared/ui/ConfirmModal";
 import TestToolbar from "../features/test/components/TestToolbar";
 import Header from "@/app/layouts/HeaderLayout.jsx";
 import Empty from "../features/test/components/EmptyTestList";
@@ -26,6 +27,8 @@ export default function TestListPage() {
   // 삭제 모드: '삭제하기'를 누르면 체크박스가 나타나고, 고른 테스트를 한 번에 삭제한다
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const hasTests = !isPending && !isError && tests.length > 0;
   const hasDeletable = tests.some((test) => isDeletable(test.status));
 
@@ -59,22 +62,31 @@ export default function TestListPage() {
     });
   };
 
+  // 삭제 버튼: 확인 모달을 연다
   const handleDelete = () => {
+    if (selectedIds.size === 0) return;
+    setDeleteError("");
+    setIsConfirmOpen(true);
+  };
+
+  const closeConfirm = () => {
+    setIsConfirmOpen(false);
+    setDeleteError("");
+  };
+
+  // 확인 모달에서 '삭제'를 누르면 실제로 삭제한다. 요청이 끝날 때까지 모달을 유지한다.
+  // 일부만 실패하면 실패한 테스트만 선택된 채로 모달에 오류를 보여 주고, '다시 시도'로 그것만 다시 지운다.
+  const confirmDelete = () => {
     const ids = [...selectedIds];
-    if (ids.length === 0) return;
-    if (
-      !window.confirm(
-        `선택한 작성 중 테스트 ${ids.length}개를 삭제하시겠습니까?\n삭제한 테스트는 되돌릴 수 없습니다.`,
-      )
-    ) {
-      return;
-    }
+    setDeleteError("");
     deleteTests.mutate(ids, {
-      onSuccess: cancelSelect,
+      onSuccess: () => {
+        closeConfirm();
+        cancelSelect();
+      },
       onError: (error) => {
-        window.alert(error.message);
-        // 일부만 삭제됐을 수 있으니 선택은 비우고, 다시 고를 수 있게 삭제 모드는 유지한다
-        setSelectedIds(new Set());
+        if (error.failedIds) setSelectedIds(new Set(error.failedIds));
+        setDeleteError(error.message || "테스트를 삭제하지 못했습니다.");
       },
     });
   };
@@ -158,6 +170,18 @@ export default function TestListPage() {
 
         <UsageGuide />
       </MainContent>
+
+      <ConfirmModal
+        isOpen={isConfirmOpen}
+        title="테스트 삭제 확인"
+        description={`선택한 작성 중 테스트 ${selectedIds.size}개를 삭제하시겠습니까?\n삭제한 테스트는 되돌릴 수 없습니다.`}
+        confirmLabel={deleteError ? "다시 시도" : "삭제"}
+        pendingLabel="삭제 중"
+        isPending={deleteTests.isPending}
+        error={deleteError}
+        onCancel={closeConfirm}
+        onConfirm={confirmDelete}
+      />
     </PageContainer>
   );
 }
