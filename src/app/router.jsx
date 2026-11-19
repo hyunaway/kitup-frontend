@@ -1,7 +1,6 @@
-import { createBrowserRouter, Navigate } from "react-router";
+import { createBrowserRouter, Navigate, Outlet } from "react-router";
 import PlainLayout from "@/app/layouts/PlainLayout.jsx";
 import TestLayout from "@/app/layouts/TestLayout.jsx";
-import StepGuard from "@/app/guards/StepGuard.jsx";
 import TestListPage from "@/pages/TestListPage.jsx";
 import MenuRegisterPage from "@/pages/onboarding/MenuRegisterPage.jsx";
 import RecipeInputPage from "@/pages/onboarding/RecipeInputPage.jsx";
@@ -36,7 +35,7 @@ export const router = createBrowserRouter([
     element: <TestLayout />,
     children: [
       {
-        element: <StepGuard />,
+        element: <Outlet />,
         children: [
           { path: "onboarding/menu", element: <MenuRegisterPage /> },
           { path: "onboarding/recipe", element: <RecipeInputPage /> },

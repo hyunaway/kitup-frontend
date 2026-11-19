@@ -62,7 +62,10 @@ const AiIngredientPage = () => {
       });
 
       navigate(`/tests/${testId}/onboarding/result`, {
-        state: { aiMockMessage: result.message ?? null },
+        state: {
+          costMethod: "ai",
+          aiMockMessage: result.message ?? null,
+        },
       });
     } catch (err) {
       if (err.code === "ingredients_changed") {

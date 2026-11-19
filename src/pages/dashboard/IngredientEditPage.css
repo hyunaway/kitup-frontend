@@ -170,6 +170,7 @@
 }
 
 .i_e_s_box {
+  min-width: 0;
   min-height: 102px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -189,13 +190,25 @@
   font-weight: 600;
   font-size: 16px;
   color: var(--text);
+  overflow-wrap: anywhere;
 }
 
 .i_e_s_box div.highlight {
   color: #2563eb;
 }
 
-.i_e_s_box div span {
+.i_e_s_number_group {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.i_e_s_box div .i_e_s_number_group {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.i_e_s_box div .i_e_s_unit {
+  margin-left: 2px;
   font-size: 12px;
   font-weight: 400;
 }

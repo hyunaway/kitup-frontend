@@ -16,6 +16,18 @@ const CostResultPage = () => {
   const [costError, setCostError] = useState("");
   const aiMockMessage = location.state?.aiMockMessage;
 
+  const handlePrevious = () => {
+    const costMethod = location.state?.costMethod;
+
+    if (costMethod === "recipe") {
+      navigate(`/tests/${testId}/onboarding/cost`);
+    } else if (costMethod === "ai") {
+      navigate(`/tests/${testId}/onboarding/ai`);
+    } else {
+      navigate(`/tests/${testId}/onboarding/menu`);
+    }
+  };
+
   useEffect(() => {
     if (!testId) return;
 
@@ -67,10 +79,7 @@ const CostResultPage = () => {
         </div>
       )}
       <div className="costresultpage_bot">
-        <button
-          className="costresultpage_bot_prev"
-          onClick={() => navigate(`/tests/${testId}/onboarding/ai`)}
-        >
+        <button className="costresultpage_bot_prev" onClick={handlePrevious}>
           <img src={prev_btn} alt="" />
           이전 단계로
         </button>

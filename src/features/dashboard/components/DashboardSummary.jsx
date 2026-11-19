@@ -72,9 +72,22 @@ const DashboardSummary = ({ refreshKey }) => {
               className={item.highlight ? "d_s_value highlight" : "d_s_value"}
             >
               <strong>
-                {item.value == null ? "-" : item.value.toLocaleString("ko-KR")}
+                {item.value == null
+                  ? "-"
+                  : item.value
+                      .toLocaleString("ko-KR")
+                      .split(",")
+                      .map((group, index, groups) => (
+                        <span className="d_s_number_group" key={index}>
+                          {group}
+                          {index < groups.length - 1 ? (
+                            ","
+                          ) : (
+                            <span className="d_s_unit">{item.unit}</span>
+                          )}
+                        </span>
+                      ))}
               </strong>
-              {item.value != null && <span>{item.unit}</span>}
             </div>
           </div>
         ))}
