@@ -140,15 +140,15 @@ export default function ReportPage() {
         />
         <ActionBar>
           <ActionText>
-            <p>실시간 시뮬레이션으로 수치를 즉시 검증해보세요</p>
+            <p>제안된 개선안을 적용해 후속 테스트를 진행해보세요</p>
             <span>
-              원가 절감안 및 배달 패키지 변경 시 예상 영업이익의 변동을 즉각
-              확인할 수 있습니다.
+              이번 테스트를 통해 발견한 개선 포인트를 반영해 새로운 테스트를
+              진행하고 수익성 변화를 검증할 수 있습니다.
             </span>
           </ActionText>
           <NewTestButton type="button" onClick={() => navigate("/tests/new")}>
-            <img src={add_circle_icon} alt="" aria-hidden="true" />새 테스트
-            만들기
+            <img src={add_circle_icon} alt="" aria-hidden="true" />
+            후속 테스트 만들기
           </NewTestButton>
         </ActionBar>
       </BottomGroup>
@@ -224,12 +224,12 @@ const ActionText = styled.div`
 const NewTestButton = styled.button`
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
+  flex-shrink: 0;
   gap: 6px;
 
-  width: 138px;
   height: 36px;
-  padding: 0 20px;
+  padding: 0 16px;
   border: none;
   border-radius: 8px;
   background-color: #0f172a;
@@ -239,5 +239,6 @@ const NewTestButton = styled.button`
   font-weight: 500;
   line-height: 16px;
   letter-spacing: 0;
+  white-space: nowrap;
   color: #fcfeff;
 `;

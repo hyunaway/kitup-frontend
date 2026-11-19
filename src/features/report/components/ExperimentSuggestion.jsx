@@ -60,6 +60,16 @@ function SuggestionStatus({ reviewStatus, improvementStatus, onRetry, isRetrying
   );
 }
 
+// 실행 방안은 "- A\n- B\n- C"처럼 줄바꿈으로 구분된 한 문자열로 온다.
+// 줄 단위로 나누고 각 줄 앞의 "- "를 떼어 목록 항목으로 쓴다.
+function splitPlanItems(text) {
+  if (!text) return [];
+  return text
+    .split("\n")
+    .map((item) => item.replace(/^[-•]\s*/, "").trim())
+    .filter(Boolean);
+}
+
 function SuggestionList({ improvements, quoteById }) {
   if (improvements.length === 0) {
     return <ReportAiStatus variant="empty" title="제안할 개선안이 없어요" />;
@@ -86,7 +96,11 @@ function SuggestionList({ improvements, quoteById }) {
                 ))}
               </Quote>
             )}
-            <Plan>{action}</Plan>
+            <PlanList>
+              {splitPlanItems(action).map((item, j) => (
+                <li key={j}>{item}</li>
+              ))}
+            </PlanList>
             <CheckPoint>
               <img src={checklist_icon} alt="" aria-hidden="true" />
               <p>확인 포인트: {verification}</p>
@@ -169,8 +183,28 @@ const Quote = styled.div`
   color: #64748b;
 `;
 
-const Plan = styled.p`
+const PlanList = styled.ul`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
   font-weight: 500;
+
+  li {
+    position: relative;
+    padding-left: 12px;
+  }
+
+  li::before {
+    content: "";
+    position: absolute;
+    top: 0.6em;
+    left: 2px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: #64748b;
+  }
 `;
 
 const CheckPoint = styled.div`

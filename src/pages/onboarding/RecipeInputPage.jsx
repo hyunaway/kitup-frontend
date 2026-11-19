@@ -7,7 +7,8 @@ import {
 } from "@/features/cost/api/menuTests";
 import OnboardingHeader from "@/features/cost/components/OnboardingHeader";
 import IngredientRowList from "@/features/cost/components/IngredientRowList";
-import DeleteModal from "@/features/cost/components/DeleteModal";
+import ConfirmModal from "@/shared/ui/ConfirmModal";
+import { getIngredientDeleteDescription } from "@/features/cost/utils/deleteMessage";
 import "./RecipeInputPage.css";
 import next_btn from "@/images/Onboarding/next_btn.svg";
 import prev_btn from "@/images/Onboarding/prev_btn.svg";
@@ -333,17 +334,19 @@ function RecipeInputPage() {
         </button>
       </div>
 
-      {deleteTarget !== null && (
-        <DeleteModal
-          onClose={() => setDeleteTarget(null)}
-          onDelete={() => {
-            setIngredients((prev) =>
-              prev.filter((ingredient) => ingredient.id !== deleteTarget),
-            );
-            setDeleteTarget(null);
-          }}
-        />
-      )}
+      <ConfirmModal
+        isOpen={deleteTarget !== null}
+        title="식재료 삭제 확인"
+        description={getIngredientDeleteDescription(ingredients, deleteTarget)}
+        confirmLabel="삭제"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          setIngredients((prev) =>
+            prev.filter((ingredient) => ingredient.id !== deleteTarget),
+          );
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }
