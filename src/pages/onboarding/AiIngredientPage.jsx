@@ -62,7 +62,10 @@ const AiIngredientPage = () => {
       });
 
       navigate(`/tests/${testId}/onboarding/result`, {
-        state: { aiMockMessage: result.message ?? null },
+        state: {
+          costMethod: "ai",
+          aiMockMessage: result.message ?? null,
+        },
       });
     } catch (err) {
       if (err.code === "ingredients_changed") {
@@ -91,6 +94,14 @@ const AiIngredientPage = () => {
 
   return (
     <div className="AiIngredientPage_wrap">
+      {isEstimating && (
+        <div className="ai-loading-overlay">
+          <div className="ai-loading-content">
+            <div className="ai-loading-spinner" />
+            <p>AI가 식재료 원가를 분석하고 있습니다...</p>
+          </div>
+        </div>
+      )}
       <div className="aiingredientpage_top">
         <OnboardingHeader
           title="메뉴에 사용할 재료를 입력하세요"

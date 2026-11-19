@@ -117,7 +117,9 @@ const CostEditPage = () => {
         packaging_cost: packagingCost,
       });
 
-      navigate(`/tests/${testId}/onboarding/result`);
+      navigate(`/tests/${testId}/onboarding/result`, {
+        state: { costMethod: "recipe" },
+      });
     } catch (err) {
       setError(err.message || "원가 저장에 실패했습니다.");
     } finally {

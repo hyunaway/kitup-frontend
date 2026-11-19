@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import "./IngredientAddForm.css";
 import plus02_icon from "@/images/Onboarding/plus02_icon.svg";
 
 const IngredientAddForm = ({ onAdd, disabled = false }) => {
   const [ingredientName, setIngredientName] = useState("");
-
-  const handleAdd = (name) => {
-    if (onAdd(name)) setIngredientName("");
-  };
+  const inputRef = useRef(null);
   const recommendedIngredients = ["대파", "마늘", "참기름", "설탕"];
+  const handleAdd = (name) => {
+    if (onAdd(name)) {
+      setIngredientName("");
+      inputRef.current?.focus();
+    }
+  };
 
   return (
     <div className="IngredientAddForm_wrap">
@@ -29,6 +32,13 @@ const IngredientAddForm = ({ onAdd, disabled = false }) => {
             value={ingredientName}
             onChange={(e) => setIngredientName(e.target.value)}
             disabled={disabled}
+            ref={inputRef}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                handleAdd(ingredientName);
+              }
+            }}
           />
           <button
             type="button"

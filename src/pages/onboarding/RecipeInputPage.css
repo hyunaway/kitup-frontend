@@ -5,7 +5,7 @@
 
   display: flex;
   flex-direction: column;
-  padding: 20px 120px 0 104px;
+  padding: 20px 120px 40px 104px;
 }
 
 /* ======================================================= */
@@ -126,6 +126,11 @@
   line-height: 140%;
   letter-spacing: -2.4%;
   color: #64748b;
+}
+
+.r_m_m_bot.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ======================================================= */

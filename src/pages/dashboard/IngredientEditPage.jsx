@@ -4,11 +4,13 @@ import {
   getIngredients,
   saveIngredients,
   getTestDefaults,
+  getTestDetail,
 } from "@/features/cost/api/menuTests";
 import IngredientRowList from "@/features/cost/components/IngredientRowList";
 import DeleteModal from "@/features/cost/components/DeleteModal";
 import "./IngredientEditPage.css";
 import plus_icon from "@/images/Dashboard/plus_icon.svg";
+import { getDashboardChannels } from "@/features/dashboard/api/dashboard";
 
 const IngredientEditPage = () => {
   const navigate = useNavigate();
@@ -20,6 +22,9 @@ const IngredientEditPage = () => {
   const [loadError, setLoadError] = useState("");
   const [saveError, setSaveError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [defaultsData, setDefaultsData] = useState(null);
+  const [summaryInputs, setSummaryInputs] = useState(null);
+  const [summaryError, setSummaryError] = useState("");
   const { testId } = useParams();
 
   useEffect(() => {
@@ -51,6 +56,7 @@ const IngredientEditPage = () => {
 
         setOriginalCost(Number(result.data.total_ingredient_cost ?? 0));
         setUnitOptions(defaults.data.ingredient_unit_options ?? []);
+        setDefaultsData(defaults.data);
       } catch (err) {
         if (active) {
           setLoadError(err.message || "식재료를 불러오지 못했습니다.");
@@ -61,6 +67,54 @@ const IngredientEditPage = () => {
     };
 
     fetchIngredients();
+
+    return () => {
+      active = false;
+    };
+  }, [testId]);
+
+  useEffect(() => {
+    if (!testId) return;
+
+    let active = true;
+
+    const fetchSummaryInputs = async () => {
+      setSummaryInputs(null);
+      setSummaryError("");
+
+      try {
+        const [detailResult, channelsResult] = await Promise.all([
+          getTestDetail(testId),
+          getDashboardChannels(testId),
+        ]);
+
+        if (!active) return;
+
+        const channels = channelsResult.data.channels ?? [];
+
+        const delivery = channels.find(
+          (channel) => channel.order_type === "DELIVERY",
+        );
+        const pickup = channels.find(
+          (channel) => channel.order_type === "PICKUP",
+        );
+
+        setSummaryInputs({
+          sellingPrice: Number(detailResult.data.selling_price),
+          packagingCost: Number(detailResult.data.packaging_cost),
+          deliveryOrders: Number(delivery?.order_count ?? 0),
+          pickupOrders: Number(pickup?.order_count ?? 0),
+        });
+      } catch (err) {
+        if (active) {
+          setSummaryError(
+            err.message || "공헌이익 계산 데이터를 불러오지 못했습니다.",
+          );
+        }
+      }
+    };
+
+    fetchSummaryInputs();
 
     return () => {
       active = false;
@@ -121,6 +175,42 @@ const IngredientEditPage = () => {
     0,
   );
 
+  const deliveryFee = Number(defaultsData?.delivery_fee);
+  const commissionRate = Number(defaultsData?.delivery_commission_rate);
+
+  const canCalculate =
+    summaryInputs !== null &&
+    defaultsData !== null &&
+    Number.isFinite(summaryInputs.sellingPrice) &&
+    Number.isFinite(summaryInputs.packagingCost) &&
+    Number.isFinite(deliveryFee) &&
+    Number.isFinite(commissionRate);
+
+  const deliveryMargin = canCalculate
+    ? summaryInputs.sellingPrice -
+      changedCost -
+      summaryInputs.packagingCost -
+      deliveryFee -
+      Math.round(summaryInputs.sellingPrice * commissionRate)
+    : null;
+
+  const pickupMargin = canCalculate
+    ? summaryInputs.sellingPrice - changedCost - summaryInputs.packagingCost
+    : null;
+
+  const totalOrders = summaryInputs
+    ? summaryInputs.deliveryOrders + summaryInputs.pickupOrders
+    : 0;
+
+  const totalMargin =
+    canCalculate && totalOrders > 0
+      ? deliveryMargin * summaryInputs.deliveryOrders +
+        pickupMargin * summaryInputs.pickupOrders
+      : null;
+
+  const averageMargin =
+    totalMargin !== null ? Math.round(totalMargin / totalOrders) : null;
+
   const summaryData = [
     {
       title: "기존 추정 원가",
@@ -131,8 +221,16 @@ const IngredientEditPage = () => {
       title: "변경된 실측 원가",
       amount: changedCost.toLocaleString("ko-KR"),
     },
-    { title: "건당 공헌이익", amount: "-", highlight: true },
-    { title: "추정 총공헌이익", amount: "-" },
+    {
+      title: "건당 공헌이익",
+      amount:
+        averageMargin === null ? "-" : averageMargin.toLocaleString("ko-KR"),
+      highlight: true,
+    },
+    {
+      title: "추정 총공헌이익",
+      amount: totalMargin === null ? "-" : totalMargin.toLocaleString("ko-KR"),
+    },
   ];
 
   return (
@@ -192,14 +290,26 @@ const IngredientEditPage = () => {
         <div className="i_e_s_top">
           <p>수정 결과 요약</p>
         </div>
+        {summaryError && <p role="alert">{summaryError}</p>}
 
         <div className="i_e_s_main">
           {summaryData.map((item) => (
             <div className="i_e_s_box" key={item.title}>
               <p>{item.title}</p>
+
               <div className={item.highlight ? "highlight" : ""}>
-                {item.amount}
-                {item.amount !== "-" && <span>원</span>}
+                {item.amount === "-"
+                  ? "-"
+                  : item.amount.split(",").map((group, index, groups) => (
+                      <span className="i_e_s_number_group" key={index}>
+                        {group}
+                        {index < groups.length - 1 ? (
+                          ","
+                        ) : (
+                          <span className="i_e_s_unit">원</span>
+                        )}
+                      </span>
+                    ))}
               </div>
             </div>
           ))}
